@@ -1,19 +1,18 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { onboardingStorage, authStorage } from '../../infrastructure/storage';
-import { FORD_COLORS, SPACING } from '../../shared/theme';
+import { FORD_COLORS, SPACING, TYPOGRAPHY } from '../../shared/theme';
 import { ROUTES } from '../../shared/constants';
-import { FordLogo } from '../components';
 
 type SplashScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
-  const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
-  const opacityAnim = React.useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -30,11 +29,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       }),
     ]).start();
 
-    checkAuthState();
+    const timer = setTimeout(() => {
+      checkAuthState();
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const checkAuthState = async () => {
-    await new Promise(resolve => setTimeout(resolve, 2500));
     const isOnboarded = await onboardingStorage.isCompleted();
     const hasToken = await authStorage.getToken();
 
@@ -59,23 +61,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
         ]}
       >
         <View style={styles.logoCircle}>
-          <FordLogo size={80} color={FORD_COLORS.WHITE} />
+          <MaterialCommunityIcons name="alpha-f-circle" size={80} color={FORD_COLORS.WHITE} />
         </View>
         <View style={styles.brandName}>
-          <Animated.Text style={[styles.brandText, { opacity: opacityAnim }]}>
-            FORD
-          </Animated.Text>
-          <Animated.Text style={[styles.brandSubtext, { opacity: opacityAnim }]}>
-            GUARDIAN
-          </Animated.Text>
+          <Text style={styles.brandText}>FORD</Text>
+          <Text style={styles.brandSubtext}>GUARDIAN</Text>
         </View>
       </Animated.View>
 
       <Animated.View style={[styles.tagline, { opacity: opacityAnim }]}>
         <View style={styles.taglineBar} />
-        <Animated.Text style={styles.taglineText}>
-          Proteção inteligente para seu veículo
-        </Animated.Text>
+        <Text style={styles.taglineText}>Proteção inteligente para seu veículo</Text>
       </Animated.View>
     </View>
   );

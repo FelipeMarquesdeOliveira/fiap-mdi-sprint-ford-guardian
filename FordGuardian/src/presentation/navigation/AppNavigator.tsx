@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import {
@@ -67,18 +67,13 @@ const MainTabs = () => {
         tabBarStyle: {
           backgroundColor: FORD_COLORS.WHITE,
           borderTopWidth: 0,
-          elevation: 8,
-          shadowColor: FORD_COLORS.BLACK,
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 10,
+          elevation: 0,
+          height: 60,
+          paddingBottom: 8,
         },
         tabBarLabelStyle: {
-          fontSize: TYPOGRAPHY.fontSize.xs,
-          fontWeight: TYPOGRAPHY.fontWeight.medium,
+          fontSize: 11,
+          fontWeight: '500',
         },
         headerShown: false,
       }}
@@ -89,7 +84,7 @@ const MainTabs = () => {
         options={{
           tabBarLabel: 'Veículos',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="car-outline" size={size} color={color} />
+            <MaterialCommunityIcons name="garage" size={size} color={color} />
           ),
         }}
       />
@@ -151,10 +146,10 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen
           name={ROUTES.VEHICLE_DETAILS as keyof RootStackParamList}
           component={VehicleDetailsScreen}
-          options={({ route }) => ({
+          options={{
             title: 'Detalhes',
             headerBackTitle: 'Voltar',
-          })}
+          }}
         />
         <Stack.Screen
           name={ROUTES.ADD_VEHICLE as keyof RootStackParamList}
