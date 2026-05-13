@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { onboardingStorage, authStorage } from '../../infrastructure/storage';
-import { FORD_COLORS, SPACING, TYPOGRAPHY } from '../../shared/theme';
+import { FORD_COLORS, SPACING } from '../../shared/theme';
 import { ROUTES } from '../../shared/constants';
 
 type SplashScreenProps = {
@@ -53,25 +53,24 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
     <View style={styles.container}>
       <Animated.View
         style={[
-          styles.logoContainer,
+          styles.content,
           {
             transform: [{ scale: scaleAnim }],
             opacity: opacityAnim,
           },
         ]}
       >
-        <View style={styles.logoCircle}>
-          <MaterialCommunityIcons name="alpha-f-circle" size={80} color={FORD_COLORS.WHITE} />
+        <View style={styles.logoWrap}>
+          <MaterialCommunityIcons name="alpha-f-box" size={72} color={FORD_COLORS.FORD_BLUE} />
         </View>
-        <View style={styles.brandName}>
-          <Text style={styles.brandText}>FORD</Text>
-          <Text style={styles.brandSubtext}>GUARDIAN</Text>
+        <View style={styles.brandRow}>
+          <View style={styles.fordTag}>
+            <Text style={styles.fordTagText}>FORD</Text>
+          </View>
+          <Text style={styles.guardianText}>GUARDIAN</Text>
         </View>
-      </Animated.View>
-
-      <Animated.View style={[styles.tagline, { opacity: opacityAnim }]}>
-        <View style={styles.taglineBar} />
-        <Text style={styles.taglineText}>Proteção inteligente para seu veículo</Text>
+        <View style={styles.divider} />
+        <Text style={styles.tagline}>Proteção inteligente para seu veículo</Text>
       </Animated.View>
     </View>
   );
@@ -80,58 +79,49 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: FORD_COLORS.FORD_DARK_BLUE,
+    backgroundColor: FORD_COLORS.WHITE,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoContainer: {
+  content: {
     alignItems: 'center',
   },
-  logoCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+  logoWrap: {
+    marginBottom: 20,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  fordTag: {
     backgroundColor: FORD_COLORS.FORD_BLUE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: FORD_COLORS.FORD_BLUE,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 4,
+    marginRight: 12,
   },
-  brandName: {
-    marginTop: SPACING.lg,
-    alignItems: 'center',
-  },
-  brandText: {
-    fontSize: 32,
-    fontWeight: '700',
+  fordTagText: {
     color: FORD_COLORS.WHITE,
-    letterSpacing: 8,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
-  brandSubtext: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: FORD_COLORS.WHITE,
-    letterSpacing: 6,
-    opacity: 0.8,
-    marginTop: 4,
+  guardianText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: FORD_COLORS.FORD_DARK_BLUE,
+    letterSpacing: 2,
   },
-  tagline: {
-    position: 'absolute',
-    bottom: 80,
-    alignItems: 'center',
-  },
-  taglineBar: {
+  divider: {
     width: 40,
     height: 2,
     backgroundColor: FORD_COLORS.FORD_BLUE,
-    marginBottom: SPACING.md,
+    marginBottom: 16,
   },
-  taglineText: {
-    fontSize: 14,
-    color: FORD_COLORS.WHITE,
-    opacity: 0.6,
+  tagline: {
+    fontSize: 13,
+    color: FORD_COLORS.DARK_GRAY,
+    letterSpacing: 0.3,
   },
 });

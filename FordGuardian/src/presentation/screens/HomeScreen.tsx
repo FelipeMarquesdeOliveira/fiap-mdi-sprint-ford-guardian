@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Image, Animated, ScrollView } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { vehicleRepository } from '../../data/repositories';
@@ -22,16 +22,6 @@ const getStatusColor = (status: Vehicle['healthStatus']) => {
     case 'attention': return FORD_COLORS.HEALTH_ATTENTION;
     case 'critical': return FORD_COLORS.HEALTH_CRITICAL;
     default: return FORD_COLORS.DARK_GRAY;
-  }
-};
-
-const getAlertIcon = (severity: Alert['severity']) => {
-  switch (severity) {
-    case 'critical': return 'alert-circle';
-    case 'high': return 'alert';
-    case 'moderate': return 'information';
-    case 'low': return 'check-circle';
-    default: return 'information';
   }
 };
 
@@ -61,10 +51,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const animateTransition = (callback: () => void) => {
     Animated.sequence([
-      Animated.timing(fadeAnim, { toValue: 0.5, duration: 150, useNativeDriver: true }),
-      Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 0.3, duration: 150, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
     ]).start();
-    callback();
+    setTimeout(callback, 150);
   };
 
   const handlePrevVehicle = () => {
@@ -81,139 +71,109 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     });
   };
 
-  const currentVehicle = vehicles[currentIndex];
-  const vehicleAlerts = alerts.filter(a => a.vehicleId === currentVehicle?.id && !a.isDismissed);
-  const currentAlert = vehicleAlerts[0];
-
   if (loading) {
     return <LoadingSpinner />;
   }
 
+  if (vehicles.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconWrap}>
+          <MaterialCommunityIcons name="car-off" size={64} color={FORD_COLORS.MEDIUM_GRAY} />
+        </View>
+        <Text style={styles.emptyTitle}>Nenhum veículo cadastrado</Text>
+        <Text style={styles.emptySubtitle}>Adicione seu primeiro veículo Ford</Text>
+        <TouchableOpacity style={styles.emptyButton} onPress={() => navigation.navigate(ROUTES.ADD_VEHICLE)}>
+          <Text style={styles.emptyButtonText}>Adicionar Veículo</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const currentVehicle = vehicles[currentIndex];
+  const vehicleAlerts = alerts.filter(a => a.vehicleId === currentVehicle?.id && !a.isDismissed);
+  const currentAlert = vehicleAlerts[0];
+  const statusColor = getStatusColor(currentVehicle.healthStatus);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerBrand}>
-          <MaterialCommunityIcons name="alpha-f-circle" size={28} color={FORD_COLORS.FORD_BLUE} />
-          <Text style={styles.brandText}>FORD GUARDIAN</Text>
+        <View style={styles.logoRow}>
+          <View style={styles.fordBadge}>
+            <Text style={styles.fordBadgeText}>FORD</Text>
+          </View>
+          <Text style={styles.appName}>GUARDIAN</Text>
         </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate(ROUTES.ADD_VEHICLE)}
-        >
+        <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate(ROUTES.ADD_VEHICLE)}>
           <MaterialCommunityIcons name="plus" size={18} color={FORD_COLORS.WHITE} />
-          <Text style={styles.addButtonText}>Adicionar</Text>
+          <Text style={styles.addBtnText}>Adicionar</Text>
         </TouchableOpacity>
       </View>
 
-      {vehicles.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyCarIcon}>
-            <MaterialCommunityIcons name="car-off" size={64} color={FORD_COLORS.MEDIUM_GRAY} />
-          </View>
-          <Text style={styles.emptyTitle}>Nenhum veículo</Text>
-          <Text style={styles.emptySubtitle}>Adicione seu primeiro veículo Ford</Text>
-          <TouchableOpacity
-            style={styles.emptyAddButton}
-            onPress={() => navigation.navigate(ROUTES.ADD_VEHICLE)}
-          >
-            <Text style={styles.emptyAddButtonText}>Adicionar Veículo</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.carouselContainer}>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={handlePrevVehicle}
-            disabled={vehicles.length <= 1}
-          >
-            <MaterialCommunityIcons
-              name="chevron-left"
-              size={32}
-              color={vehicles.length <= 1 ? FORD_COLORS.MEDIUM_GRAY : FORD_COLORS.FORD_BLUE}
-            />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.carouselRow}>
+          <TouchableOpacity style={styles.navBtn} onPress={handlePrevVehicle} disabled={vehicles.length <= 1}>
+            <MaterialCommunityIcons name="chevron-left" size={36} color={vehicles.length <= 1 ? FORD_COLORS.MEDIUM_GRAY : FORD_COLORS.FORD_BLUE} />
           </TouchableOpacity>
 
           <Animated.View style={[styles.carCard, { opacity: fadeAnim }]}>
-            <View style={styles.carImageContainer}>
-              <View style={styles.carPlaceholder}>
-                <MaterialCommunityIcons name="car-sports" size={120} color={FORD_COLORS.FORD_LIGHT_BLUE} />
-              </View>
+            <View style={styles.imageWrap}>
+              {currentVehicle.imageUrl ? (
+                <Image source={{ uri: currentVehicle.imageUrl }} style={styles.carImg} resizeMode="cover" />
+              ) : (
+                <View style={styles.imgPlaceholder}>
+                  <MaterialCommunityIcons name="car-sports" size={80} color={FORD_COLORS.FORD_LIGHT_BLUE} />
+                </View>
+              )}
 
               {currentAlert && (
-                <View style={styles.alertBadge}>
-                  <MaterialCommunityIcons
-                    name={getAlertIcon(currentAlert.severity) as any}
-                    size={14}
-                    color={getStatusColor(currentVehicle.healthStatus)}
-                  />
-                  <Text style={styles.alertText} numberOfLines={1}>
-                    {currentAlert.title}
-                  </Text>
+                <View style={styles.alertPill}>
+                  <MaterialCommunityIcons name="alert-circle" size={14} color={statusColor} />
+                  <Text style={styles.alertPillText} numberOfLines={1}>{currentAlert.title}</Text>
                 </View>
               )}
             </View>
 
-            <View style={styles.carInfo}>
-              <Text style={styles.carName}>{currentVehicle.model}</Text>
-              <View style={styles.carDetails}>
-                <Text style={styles.carPlate}>{currentVehicle.licensePlate}</Text>
-                <View style={[styles.statusDot, { backgroundColor: getStatusColor(currentVehicle.healthStatus) }]} />
-                <Text style={styles.statusLabel}>{HEALTH_STATUS_LABELS[currentVehicle.healthStatus]}</Text>
+            <View style={styles.infoBlock}>
+              <Text style={styles.modelName}>{currentVehicle.model}</Text>
+              <View style={styles.metaRow}>
+                <Text style={styles.plateTag}>{currentVehicle.licensePlate}</Text>
+                <View style={[styles.statusPill, { backgroundColor: statusColor }]}>
+                  <Text style={styles.statusPillText}>{HEALTH_STATUS_LABELS[currentVehicle.healthStatus]}</Text>
+                </View>
               </View>
             </View>
 
-            <View style={styles.healthBar}>
-              <View
-                style={[
-                  styles.healthProgress,
-                  {
-                    width: `${currentVehicle.healthStatus === 'normal' ? 85 : currentVehicle.healthStatus === 'attention' ? 55 : 25}%`,
-                    backgroundColor: getStatusColor(currentVehicle.healthStatus),
-                  },
-                ]}
-              />
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${currentVehicle.healthStatus === 'normal' ? 85 : currentVehicle.healthStatus === 'attention' ? 55 : 25}%`, backgroundColor: statusColor }]} />
             </View>
-
-            <TouchableOpacity
-              style={styles.detailsButton}
-              onPress={() => navigation.navigate(ROUTES.VEHICLE_DETAILS, { vehicleId: currentVehicle.id })}
-            >
-              <Text style={styles.detailsButtonText}>Ver detalhes</Text>
-              <MaterialCommunityIcons name="chevron-right" size={20} color={FORD_COLORS.FORD_BLUE} />
-            </TouchableOpacity>
           </Animated.View>
 
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={handleNextVehicle}
-            disabled={vehicles.length <= 1}
-          >
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={32}
-              color={vehicles.length <= 1 ? FORD_COLORS.MEDIUM_GRAY : FORD_COLORS.FORD_BLUE}
-            />
+          <TouchableOpacity style={styles.navBtn} onPress={handleNextVehicle} disabled={vehicles.length <= 1}>
+            <MaterialCommunityIcons name="chevron-right" size={36} color={vehicles.length <= 1 ? FORD_COLORS.MEDIUM_GRAY : FORD_COLORS.FORD_BLUE} />
           </TouchableOpacity>
         </View>
-      )}
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.alertButton}
-          onPress={() => navigation.navigate(ROUTES.ALERTS)}
-        >
-          <MaterialCommunityIcons name="bell-outline" size={24} color={FORD_COLORS.FORD_BLUE} />
-          <Text style={styles.alertButtonText}>Alertas</Text>
-        </TouchableOpacity>
+        <View style={styles.quickActions}>
+          <TouchableOpacity style={styles.actionChip} onPress={() => navigation.navigate(ROUTES.VEHICLE_DETAILS, { vehicleId: currentVehicle.id })}>
+            <MaterialCommunityIcons name="car-cog" size={22} color={FORD_COLORS.FORD_BLUE} />
+            <Text style={styles.chipLabel}>Detalhes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionChip} onPress={() => navigation.navigate(ROUTES.ALERTS)}>
+            <MaterialCommunityIcons name="bell-outline" size={22} color={FORD_COLORS.FORD_BLUE} />
+            <Text style={styles.chipLabel}>Alertas</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionChip} onPress={() => navigation.navigate(ROUTES.FIND_DEALER)}>
+            <MaterialCommunityIcons name="map-marker" size={22} color={FORD_COLORS.FORD_BLUE} />
+            <Text style={styles.chipLabel}>Concessionária</Text>
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          style={styles.dealerButton}
-          onPress={() => navigation.navigate(ROUTES.FIND_DEALER)}
-        >
-          <MaterialCommunityIcons name="map-marker-outline" size={24} color={FORD_COLORS.FORD_BLUE} />
-          <Text style={styles.dealerButtonText}>Concessionária</Text>
+        <TouchableOpacity style={styles.ctaBtn} onPress={() => navigation.navigate(ROUTES.REQUEST_REVIEW, { vehicleId: currentVehicle.id })}>
+          <MaterialCommunityIcons name="wrench" size={20} color={FORD_COLORS.WHITE} />
+          <Text style={styles.ctaBtnText}>Solicitar Revisão</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -227,227 +187,222 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.xl,
-    paddingBottom: SPACING.md,
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 16,
   },
-  headerBrand: {
+  logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  brandText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
+  fordBadge: {
+    backgroundColor: FORD_COLORS.FORD_BLUE,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  fordBadgeText: {
+    color: FORD_COLORS.WHITE,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  appName: {
+    fontSize: 13,
+    fontWeight: '700',
     color: FORD_COLORS.FORD_DARK_BLUE,
     letterSpacing: 1,
-    marginLeft: SPACING.sm,
+    marginLeft: 8,
   },
-  addButton: {
+  addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: FORD_COLORS.FORD_BLUE,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  addButtonText: {
+  addBtnText: {
     color: FORD_COLORS.WHITE,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontSize: 13,
+    fontWeight: '600',
     marginLeft: 4,
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xl,
+  scrollContent: {
+    paddingBottom: 30,
   },
-  emptyCarIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  emptyTitle: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: FORD_COLORS.FORD_DARK_BLUE,
-    marginBottom: SPACING.xs,
-  },
-  emptySubtitle: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    color: FORD_COLORS.DARK_GRAY,
-    marginBottom: SPACING.xl,
-  },
-  emptyAddButton: {
-    backgroundColor: FORD_COLORS.FORD_BLUE,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-  },
-  emptyAddButtonText: {
-    color: FORD_COLORS.WHITE,
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-  },
-  carouselContainer: {
-    flex: 1,
+  carouselRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: SPACING.sm,
+    paddingHorizontal: 8,
   },
-  navButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  navBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: FORD_COLORS.LIGHT_GRAY,
     justifyContent: 'center',
     alignItems: 'center',
   },
   carCard: {
     flex: 1,
-    backgroundColor: FORD_COLORS.WHITE,
-    marginHorizontal: SPACING.md,
-    borderRadius: BORDER_RADIUS.xl,
-    shadowColor: FORD_COLORS.BLACK,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    overflow: 'hidden',
+    marginHorizontal: 12,
   },
-  carImageContainer: {
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
+  imageWrap: {
+    width: '100%',
+    aspectRatio: 16 / 10,
+    borderRadius: 16,
+    overflow: 'hidden',
     position: 'relative',
   },
-  carPlaceholder: {
+  carImg: {
+    width: '100%',
+    height: '100%',
+  },
+  imgPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: FORD_COLORS.LIGHT_GRAY,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  alertBadge: {
+  alertPill: {
     position: 'absolute',
-    top: SPACING.md,
-    right: SPACING.md,
+    top: 12,
+    right: 12,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: FORD_COLORS.WHITE,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.full,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
     shadowColor: FORD_COLORS.BLACK,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
-    maxWidth: '60%',
+    maxWidth: '65%',
   },
-  alertText: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+  alertPillText: {
+    fontSize: 11,
     color: FORD_COLORS.FORD_CHARCOAL,
     marginLeft: 4,
     flexShrink: 1,
   },
-  carInfo: {
-    padding: SPACING.lg,
+  infoBlock: {
+    marginTop: 16,
   },
-  carName: {
-    fontSize: TYPOGRAPHY.fontSize.xxl,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
+  modelName: {
+    fontSize: 26,
+    fontWeight: '700',
     color: FORD_COLORS.FORD_DARK_BLUE,
-    marginBottom: SPACING.xs,
   },
-  carDetails: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 6,
   },
-  carPlate: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+  plateTag: {
+    fontSize: 13,
     color: FORD_COLORS.DARK_GRAY,
     backgroundColor: FORD_COLORS.LIGHT_GRAY,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.sm,
-    marginRight: SPACING.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginRight: 10,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: SPACING.xs,
+  statusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
   },
-  statusLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: FORD_COLORS.DARK_GRAY,
+  statusPillText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: FORD_COLORS.WHITE,
   },
-  healthBar: {
+  progressTrack: {
     height: 4,
     backgroundColor: FORD_COLORS.LIGHT_GRAY,
-    marginHorizontal: SPACING.lg,
     borderRadius: 2,
+    marginTop: 14,
     overflow: 'hidden',
   },
-  healthProgress: {
+  progressFill: {
     height: '100%',
     borderRadius: 2,
   },
-  detailsButton: {
+  quickActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 28,
+    marginHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: FORD_COLORS.LIGHT_GRAY,
+    borderRadius: 16,
+  },
+  actionChip: {
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  chipLabel: {
+    fontSize: 11,
+    color: FORD_COLORS.FORD_BLUE,
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.md,
-    marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-    borderTopWidth: 1,
-    borderTopColor: FORD_COLORS.LIGHT_GRAY,
+    backgroundColor: FORD_COLORS.FORD_BLUE,
+    marginHorizontal: 20,
+    marginTop: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
   },
-  detailsButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: FORD_COLORS.FORD_BLUE,
-    marginRight: 4,
+  ctaBtnText: {
+    color: FORD_COLORS.WHITE,
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 8,
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-    borderTopWidth: 1,
-    borderTopColor: FORD_COLORS.LIGHT_GRAY,
-  },
-  alertButton: {
-    flexDirection: 'row',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: FORD_COLORS.FORD_BLUE,
+    paddingHorizontal: 30,
   },
-  alertButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: FORD_COLORS.FORD_BLUE,
-    marginLeft: SPACING.sm,
-  },
-  dealerButton: {
-    flexDirection: 'row',
+  emptyIconWrap: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: FORD_COLORS.LIGHT_GRAY,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: FORD_COLORS.FORD_BLUE,
+    marginBottom: 20,
   },
-  dealerButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: FORD_COLORS.FORD_BLUE,
-    marginLeft: SPACING.sm,
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: FORD_COLORS.FORD_DARK_BLUE,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: FORD_COLORS.DARK_GRAY,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  emptyButton: {
+    backgroundColor: FORD_COLORS.FORD_BLUE,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  emptyButtonText: {
+    color: FORD_COLORS.WHITE,
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
