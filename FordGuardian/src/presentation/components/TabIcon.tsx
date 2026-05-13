@@ -3,18 +3,26 @@ import { View, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FORD_COLORS } from '../../shared/theme';
 
-interface FordLogoProps {
+interface TabIconProps {
+  name: 'car' | 'bell' | 'account';
   size?: number;
   color?: string;
 }
 
-export const FordLogo: React.FC<FordLogoProps> = ({
-  size = 40,
-  color = FORD_COLORS.FORD_BLUE
+export const TabIcon: React.FC<TabIconProps> = ({
+  name,
+  size = 24,
+  color = FORD_COLORS.DARK_GRAY
 }) => {
+  const iconNames = {
+    car: 'car-outline',
+    bell: 'bell-outline',
+    account: 'account-outline',
+  };
+
   return (
     <MaterialCommunityIcons
-      name="alpha-f-circle"
+      name={iconNames[name] as any}
       size={size}
       color={color}
     />

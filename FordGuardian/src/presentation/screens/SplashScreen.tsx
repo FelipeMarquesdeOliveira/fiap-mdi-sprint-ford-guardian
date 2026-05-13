@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { onboardingStorage, authStorage } from '../../infrastructure/storage';
 import { FORD_COLORS, SPACING } from '../../shared/theme';
@@ -73,7 +74,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       <Animated.View style={[styles.tagline, { opacity: opacityAnim }]}>
         <View style={styles.taglineBar} />
         <Animated.Text style={styles.taglineText}>
-         Proteção inteligente para seu veículo
+          Proteção inteligente para seu veículo
         </Animated.Text>
       </Animated.View>
     </View>

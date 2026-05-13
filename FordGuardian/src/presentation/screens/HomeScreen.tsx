@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Image } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { vehicleRepository } from '../../data/repositories';
 import { alertRepository } from '../../data/repositories';
 import { Vehicle } from '../../domain/entities/Vehicle';
 import { FORD_COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../shared/theme';
 import { ROUTES, HEALTH_STATUS_LABELS } from '../../shared/constants';
-import { LoadingSpinner, FordLogo, CircularProgress, VehicleImage } from '../components';
+import { LoadingSpinner, FordLogo, IconButton, VehicleImage } from '../components';
 
 type HomeScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -24,9 +25,9 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({ vehi
 
   const getProgress = (status: Vehicle['healthStatus']) => {
     switch (status) {
-      case 'normal': return 0.85;
-      case 'attention': return 0.55;
-      case 'critical': return 0.25;
+      case 'normal': return 85;
+      case 'attention': return 55;
+      case 'critical': return 25;
       default: return 0;
     }
   };
@@ -35,11 +36,11 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({ vehi
   const progress = getProgress(vehicle.healthStatus);
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.95}>
       <View style={styles.vehicleCard}>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <FordLogo size={28} color={FORD_COLORS.FORD_BLUE} />
+            <MaterialCommunityIcons name="car" size={24} color={FORD_COLORS.FORD_BLUE} />
             <View style={styles.cardTitle}>
               <Text style={styles.vehicleModel}>{vehicle.model}</Text>
               <Text style={styles.vehicleYear}>{vehicle.year}</Text>
@@ -65,7 +66,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({ vehi
           </View>
           <View style={styles.healthScoreContainer}>
             <View style={[styles.scoreCircle, { borderColor: color }]}>
-              <Text style={[styles.scoreValue, { color }]}>{Math.round(progress * 100)}%</Text>
+              <Text style={[styles.scoreValue, { color }]}>{progress}%</Text>
             </View>
             <Text style={styles.scoreLabel}>Saúde</Text>
           </View>
@@ -107,7 +108,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const ListEmptyComponent = () => (
     <View style={styles.emptyContainer}>
       <View style={styles.emptyIcon}>
-        <FordLogo size={80} color={FORD_COLORS.MEDIUM_GRAY} />
+        <MaterialCommunityIcons name="car-off" size={64} color={FORD_COLORS.MEDIUM_GRAY} />
       </View>
       <Text style={styles.emptyTitle}>Nenhum veículo cadastrado</Text>
       <Text style={styles.emptySubtitle}>Adicione seu primeiro veículo Ford para começar</Text>
@@ -115,7 +116,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         style={styles.addButton}
         onPress={() => navigation.navigate(ROUTES.ADD_VEHICLE)}
       >
-        <Text style={styles.addButtonText}>+ Adicionar Veículo</Text>
+        <MaterialCommunityIcons name="plus" size={20} color={FORD_COLORS.WHITE} />
+        <Text style={styles.addButtonText}>Adicionar Veículo</Text>
       </TouchableOpacity>
     </View>
   );
@@ -134,17 +136,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <Text style={styles.headerSubtitle}>Seus veículos</Text>
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.alertButton}
+        <IconButton
+          icon="bell-outline"
           onPress={() => navigation.navigate(ROUTES.ALERTS)}
-        >
-          <Text style={styles.alertIcon}>🔔</Text>
-          {unreadAlerts > 0 && (
-            <View style={styles.alertBadge}>
-              <Text style={styles.alertBadgeText}>{unreadAlerts}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+          badge={unreadAlerts}
+        />
       </View>
 
       <FlatList
@@ -195,31 +191,6 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: FORD_COLORS.WHITE,
     opacity: 0.7,
-  },
-  alertButton: {
-    position: 'relative',
-    padding: SPACING.sm,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: BORDER_RADIUS.full,
-  },
-  alertIcon: {
-    fontSize: 22,
-  },
-  alertBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: FORD_COLORS.HEALTH_CRITICAL,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  alertBadgeText: {
-    color: FORD_COLORS.WHITE,
-    fontSize: 12,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
   listContent: {
     padding: SPACING.lg,
@@ -339,6 +310,8 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: FORD_COLORS.FORD_BLUE,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
@@ -347,5 +320,6 @@ const styles = StyleSheet.create({
     color: FORD_COLORS.WHITE,
     fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    marginLeft: SPACING.sm,
   },
 });

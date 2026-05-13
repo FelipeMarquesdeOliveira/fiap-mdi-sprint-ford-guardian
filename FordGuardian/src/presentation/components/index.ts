@@ -5,5 +5,8 @@ export { HealthBadge } from './HealthBadge';
 export { LoadingSpinner } from './LoadingSpinner';
 export { Input } from './Input';
 export { FordLogo } from './FordLogo';
+export { TabIcon } from './TabIcon';
+export { IconButton } from './IconButton';
+export { EmptyState } from './EmptyState';
 export { CircularProgress } from './CircularProgress';
 export { VehicleImage } from './VehicleImage';

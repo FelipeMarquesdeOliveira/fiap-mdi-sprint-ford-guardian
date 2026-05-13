@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
-import { createBottomTabNavigator, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import {
   SplashScreen,
@@ -20,7 +21,6 @@ import {
 
 import { ROUTES } from '../../shared/constants';
 import { FORD_COLORS, TYPOGRAPHY } from '../../shared/theme';
-import { FordLogo } from '../components';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -58,12 +58,6 @@ const screenOptions = {
   headerShadowVisible: false,
 };
 
-const TabIcon: React.FC<{ name: string; focused: boolean }> = ({ name, focused }) => (
-  <View style={[styles.tabIcon, focused && styles.tabIconFocused]}>
-    <Text style={styles.tabIconText}>{name}</Text>
-  </View>
-);
-
 const MainTabs = () => {
   return (
     <Tab.Navigator
@@ -94,7 +88,9 @@ const MainTabs = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Veículos',
-          tabBarIcon: ({ focused }) => <TabIcon name="🚗" focused={focused} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="car-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -102,7 +98,9 @@ const MainTabs = () => {
         component={AlertsScreen}
         options={{
           tabBarLabel: 'Alertas',
-          tabBarIcon: ({ focused }) => <TabIcon name="🔔" focused={focused} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="bell-outline" size={size} color={color} />
+          ),
           headerShown: false,
         }}
       />
@@ -111,7 +109,9 @@ const MainTabs = () => {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Perfil',
-          tabBarIcon: ({ focused }) => <TabIcon name="👤" focused={focused} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="account-outline" size={size} color={color} />
+          ),
           headerShown: false,
         }}
       />
@@ -180,16 +180,3 @@ export const AppNavigator: React.FC = () => {
     </NavigationContainer>
   );
 };
-
-const styles = StyleSheet.create({
-  tabIcon: {
-    width: 28,
-    height: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tabIconFocused: {},
-  tabIconText: {
-    fontSize: 20,
-  },
-});
