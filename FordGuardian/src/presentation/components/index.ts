@@ -4,3 +4,6 @@ export { Card } from './Card';
 export { HealthBadge } from './HealthBadge';
 export { LoadingSpinner } from './LoadingSpinner';
 export { Input } from './Input';
+export { FordLogo } from './FordLogo';
+export { CircularProgress } from './CircularProgress';
+export { VehicleImage } from './VehicleImage';

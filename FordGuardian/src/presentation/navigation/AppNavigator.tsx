@@ -20,6 +20,7 @@ import {
 
 import { ROUTES } from '../../shared/constants';
 import { FORD_COLORS, TYPOGRAPHY } from '../../shared/theme';
+import { FordLogo } from '../components';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -48,12 +49,13 @@ const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 const screenOptions = {
   headerStyle: {
-    backgroundColor: FORD_COLORS.FORD_BLUE,
+    backgroundColor: FORD_COLORS.FORD_DARK_BLUE,
   },
   headerTintColor: FORD_COLORS.WHITE,
   headerTitleStyle: {
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
   },
+  headerShadowVisible: false,
 };
 
 const TabIcon: React.FC<{ name: string; focused: boolean }> = ({ name, focused }) => (
@@ -70,9 +72,15 @@ const MainTabs = () => {
         tabBarInactiveTintColor: FORD_COLORS.DARK_GRAY,
         tabBarStyle: {
           backgroundColor: FORD_COLORS.WHITE,
-          borderTopColor: FORD_COLORS.MEDIUM_GRAY,
-          height: 60,
-          paddingBottom: 8,
+          borderTopWidth: 0,
+          elevation: 8,
+          shadowColor: FORD_COLORS.BLACK,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 10,
         },
         tabBarLabelStyle: {
           fontSize: TYPOGRAPHY.fontSize.xs,
@@ -143,27 +151,30 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen
           name={ROUTES.VEHICLE_DETAILS as keyof RootStackParamList}
           component={VehicleDetailsScreen}
-          options={{ title: 'Detalhes do Veículo' }}
+          options={({ route }) => ({
+            title: 'Detalhes',
+            headerBackTitle: 'Voltar',
+          })}
         />
         <Stack.Screen
           name={ROUTES.ADD_VEHICLE as keyof RootStackParamList}
           component={AddVehicleScreen}
-          options={{ title: 'Adicionar Veículo' }}
+          options={{ title: 'Adicionar Veículo', headerBackTitle: 'Voltar' }}
         />
         <Stack.Screen
           name={ROUTES.ALERT_DETAIL as keyof RootStackParamList}
           component={AlertsScreen}
-          options={{ title: 'Detalhes do Alerta' }}
+          options={{ title: 'Detalhes do Alerta', headerBackTitle: 'Voltar' }}
         />
         <Stack.Screen
           name={ROUTES.REQUEST_REVIEW as keyof RootStackParamList}
           component={RequestReviewScreen}
-          options={{ title: 'Solicitar Revisão' }}
+          options={{ title: 'Solicitar Revisão', headerBackTitle: 'Voltar' }}
         />
         <Stack.Screen
           name={ROUTES.FIND_DEALER as keyof RootStackParamList}
           component={FindDealerScreen}
-          options={{ title: 'Buscar Concessionária' }}
+          options={{ title: 'Concessionárias', headerBackTitle: 'Voltar' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
@@ -179,6 +190,6 @@ const styles = StyleSheet.create({
   },
   tabIconFocused: {},
   tabIconText: {
-    fontSize: 18,
+    fontSize: 20,
   },
 });

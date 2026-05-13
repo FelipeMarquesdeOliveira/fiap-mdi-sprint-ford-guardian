@@ -1,15 +1,78 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Image } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { vehicleRepository } from '../../data/repositories';
 import { alertRepository } from '../../data/repositories';
 import { Vehicle } from '../../domain/entities/Vehicle';
 import { FORD_COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../shared/theme';
-import { ROUTES } from '../../shared/constants';
-import { Card, HealthBadge, LoadingSpinner } from '../components';
+import { ROUTES, HEALTH_STATUS_LABELS } from '../../shared/constants';
+import { LoadingSpinner, FordLogo, CircularProgress, VehicleImage } from '../components';
 
 type HomeScreenProps = {
   navigation: NativeStackNavigationProp<any>;
+};
+
+const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({ vehicle, onPress }) => {
+  const getStatusColor = (status: Vehicle['healthStatus']) => {
+    switch (status) {
+      case 'normal': return FORD_COLORS.HEALTH_NORMAL;
+      case 'attention': return FORD_COLORS.HEALTH_ATTENTION;
+      case 'critical': return FORD_COLORS.HEALTH_CRITICAL;
+      default: return FORD_COLORS.DARK_GRAY;
+    }
+  };
+
+  const getProgress = (status: Vehicle['healthStatus']) => {
+    switch (status) {
+      case 'normal': return 0.85;
+      case 'attention': return 0.55;
+      case 'critical': return 0.25;
+      default: return 0;
+    }
+  };
+
+  const color = getStatusColor(vehicle.healthStatus);
+  const progress = getProgress(vehicle.healthStatus);
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+      <View style={styles.vehicleCard}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderLeft}>
+            <FordLogo size={28} color={FORD_COLORS.FORD_BLUE} />
+            <View style={styles.cardTitle}>
+              <Text style={styles.vehicleModel}>{vehicle.model}</Text>
+              <Text style={styles.vehicleYear}>{vehicle.year}</Text>
+            </View>
+          </View>
+          <View style={[styles.statusIndicator, { backgroundColor: color }]}>
+            <Text style={styles.statusText}>{HEALTH_STATUS_LABELS[vehicle.healthStatus]}</Text>
+          </View>
+        </View>
+
+        <View style={styles.carImageContainer}>
+          <VehicleImage model={vehicle.model} size="medium" />
+        </View>
+
+        <View style={styles.cardFooter}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Placa</Text>
+            <Text style={styles.infoValue}>{vehicle.licensePlate}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Km</Text>
+            <Text style={styles.infoValue}>{vehicle.mileage.toLocaleString()}</Text>
+          </View>
+          <View style={styles.healthScoreContainer}>
+            <View style={[styles.scoreCircle, { borderColor: color }]}>
+              <Text style={[styles.scoreValue, { color }]}>{Math.round(progress * 100)}%</Text>
+            </View>
+            <Text style={styles.scoreLabel}>Saúde</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 };
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
@@ -41,31 +104,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const renderVehicleCard = ({ item }: { item: Vehicle }) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate(ROUTES.VEHICLE_DETAILS, { vehicleId: item.id })}
-      activeOpacity={0.7}
-    >
-      <Card style={styles.vehicleCard}>
-        <View style={styles.vehicleHeader}>
-          <View style={styles.vehicleInfo}>
-            <Text style={styles.vehicleModel}>{item.model}</Text>
-            <Text style={styles.vehicleYear}>{item.year}</Text>
-          </View>
-          <HealthBadge status={item.healthStatus} />
-        </View>
-        <View style={styles.vehicleDetails}>
-          <Text style={styles.vehiclePlate}>{item.licensePlate}</Text>
-          <Text style={styles.vehicleMileage}>{item.mileage.toLocaleString()} km</Text>
-        </View>
-      </Card>
-    </TouchableOpacity>
-  );
-
   const ListEmptyComponent = () => (
     <View style={styles.emptyContainer}>
+      <View style={styles.emptyIcon}>
+        <FordLogo size={80} color={FORD_COLORS.MEDIUM_GRAY} />
+      </View>
       <Text style={styles.emptyTitle}>Nenhum veículo cadastrado</Text>
-      <Text style={styles.emptySubtitle}>Adicione seu primeiro veículo Ford</Text>
+      <Text style={styles.emptySubtitle}>Adicione seu primeiro veículo Ford para começar</Text>
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => navigation.navigate(ROUTES.ADD_VEHICLE)}
@@ -82,9 +127,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Olá,</Text>
-          <Text style={styles.userName}>Felipe</Text>
+        <View style={styles.headerLeft}>
+          <FordLogo size={36} color={FORD_COLORS.WHITE} />
+          <View style={styles.headerTitle}>
+            <Text style={styles.headerGreeting}>Olá, Felipe</Text>
+            <Text style={styles.headerSubtitle}>Seus veículos</Text>
+          </View>
         </View>
         <TouchableOpacity
           style={styles.alertButton}
@@ -99,24 +147,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.titleContainer}>
-        <Text style={styles.sectionTitle}>Meus Veículos</Text>
-        {vehicles.length > 0 && (
-          <TouchableOpacity onPress={() => navigation.navigate(ROUTES.ADD_VEHICLE)}>
-            <Text style={styles.addText}>+ Adicionar</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
       <FlatList
         data={vehicles}
-        renderItem={renderVehicleCard}
+        renderItem={({ item }) => (
+          <VehicleCard
+            vehicle={item}
+            onPress={() => navigation.navigate(ROUTES.VEHICLE_DETAILS, { vehicleId: item.id })}
+          />
+        )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={ListEmptyComponent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[FORD_COLORS.FORD_BLUE]} />
         }
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -132,29 +177,38 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: SPACING.lg,
-    backgroundColor: FORD_COLORS.FORD_BLUE,
+    backgroundColor: FORD_COLORS.FORD_DARK_BLUE,
   },
-  greeting: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    color: FORD_COLORS.WHITE,
-    opacity: 0.8,
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  userName: {
-    fontSize: TYPOGRAPHY.fontSize.xxl,
+  headerTitle: {
+    marginLeft: SPACING.md,
+  },
+  headerGreeting: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: FORD_COLORS.WHITE,
+  },
+  headerSubtitle: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: FORD_COLORS.WHITE,
+    opacity: 0.7,
   },
   alertButton: {
     position: 'relative',
     padding: SPACING.sm,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: BORDER_RADIUS.full,
   },
   alertIcon: {
-    fontSize: 24,
+    fontSize: 22,
   },
   alertBadge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: -2,
+    right: -2,
     backgroundColor: FORD_COLORS.HEALTH_CRITICAL,
     borderRadius: 10,
     minWidth: 20,
@@ -164,42 +218,37 @@ const styles = StyleSheet.create({
   },
   alertBadgeText: {
     color: FORD_COLORS.WHITE,
-    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontSize: 12,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: FORD_COLORS.FORD_DARK_BLUE,
-  },
-  addText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    color: FORD_COLORS.FORD_BLUE,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
   listContent: {
     padding: SPACING.lg,
-    paddingTop: 0,
     flexGrow: 1,
   },
   vehicleCard: {
-    marginBottom: SPACING.md,
+    backgroundColor: FORD_COLORS.WHITE,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    shadowColor: FORD_COLORS.BLACK,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  vehicleHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: SPACING.md,
   },
-  vehicleInfo: {},
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardTitle: {
+    marginLeft: SPACING.sm,
+  },
   vehicleModel: {
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
@@ -209,21 +258,62 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: FORD_COLORS.DARK_GRAY,
   },
-  vehicleDetails: {
+  statusIndicator: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  statusText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: FORD_COLORS.WHITE,
+  },
+  carImageContainer: {
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    backgroundColor: FORD_COLORS.LIGHT_GRAY,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.md,
+  },
+  cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  vehiclePlate: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: FORD_COLORS.DARK_GRAY,
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.sm,
+  infoItem: {
+    alignItems: 'flex-start',
   },
-  vehicleMileage: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+  infoLabel: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
     color: FORD_COLORS.DARK_GRAY,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  infoValue: {
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: FORD_COLORS.FORD_DARK_BLUE,
+    marginTop: 2,
+  },
+  healthScoreContainer: {
+    alignItems: 'center',
+  },
+  scoreCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scoreValue: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+  },
+  scoreLabel: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: FORD_COLORS.DARK_GRAY,
+    marginTop: 2,
   },
   emptyContainer: {
     flex: 1,
@@ -231,21 +321,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: SPACING.xl,
   },
+  emptyIcon: {
+    marginBottom: SPACING.lg,
+  },
   emptyTitle: {
     fontSize: TYPOGRAPHY.fontSize.xl,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: FORD_COLORS.FORD_DARK_BLUE,
     marginBottom: SPACING.sm,
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: TYPOGRAPHY.fontSize.md,
     color: FORD_COLORS.DARK_GRAY,
     textAlign: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
   addButton: {
     backgroundColor: FORD_COLORS.FORD_BLUE,
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
   },
