@@ -1,0 +1,48 @@
+import { Dealer } from '../../domain/entities/Dealer';
+
+export const MOCK_DEALERS: Dealer[] = [
+  {
+    id: '1',
+    name: 'Ford Capital - Pinheiros',
+    address: 'Av. Rebouças, 1800 - Pinheiros',
+    city: 'São Paulo',
+    state: 'SP',
+    phone: '(11) 3030-3030',
+    distance: 3.2,
+    rating: 4.8,
+    services: ['Revisão Geral', 'Troca de Óleo', 'Freios', 'Suspensão', 'Elétrica'],
+  },
+  {
+    id: '2',
+    name: 'Ford Auto Shopping - Butantã',
+    address: 'Av. Nobel, 350 - Butantã',
+    city: 'São Paulo',
+    state: 'SP',
+    phone: '(11) 3730-3030',
+    distance: 5.7,
+    rating: 4.5,
+    services: ['Revisão Geral', 'Troca de Óleo', 'Cambio', 'Motor'],
+  },
+  {
+    id: '3',
+    name: 'Ford Zona Sul - Santo Amaro',
+    address: 'Av. Adolfo Foloni, 500 - Santo Amaro',
+    city: 'São Paulo',
+    state: 'SP',
+    phone: '(11) 3540-4040',
+    distance: 12.4,
+    rating: 4.6,
+    services: ['Revisão Geral', 'Troca de Óleo', 'Freios', 'Ar Condicionado'],
+  },
+  {
+    id: '4',
+    name: 'Ford Interlagos',
+    address: 'Av. Interlagos, 4500 - Interlagos',
+    city: 'São Paulo',
+    state: 'SP',
+    phone: '(11) 5660-5050',
+    distance: 18.9,
+    rating: 4.3,
+    services: ['Revisão Geral', 'Troca de Óleo', 'Suspensão', 'Pintura'],
+  },
+];

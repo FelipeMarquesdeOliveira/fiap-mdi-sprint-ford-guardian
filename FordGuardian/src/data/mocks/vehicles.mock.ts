@@ -1,0 +1,43 @@
+import { Vehicle } from '../../domain/entities/Vehicle';
+
+export const MOCK_VEHICLES: Vehicle[] = [
+  {
+    id: '1',
+    userId: 'user_1',
+    vin: '1FTFW1ET5DFC10312',
+    brand: 'Ford',
+    model: 'F-150 XLT',
+    year: 2023,
+    licensePlate: 'ABC-1234',
+    mileage: 25000,
+    healthStatus: 'normal',
+    createdAt: '2026-01-15T10:30:00Z',
+    updatedAt: '2026-05-10T14:20:00Z',
+  },
+  {
+    id: '2',
+    userId: 'user_1',
+    vin: '3FA6P0LU5LR123456',
+    brand: 'Ford',
+    model: 'Fusion Hybrid',
+    year: 2022,
+    licensePlate: 'DEF-5678',
+    mileage: 45000,
+    healthStatus: 'attention',
+    createdAt: '2025-11-20T08:00:00Z',
+    updatedAt: '2026-05-12T09:15:00Z',
+  },
+  {
+    id: '3',
+    userId: 'user_1',
+    vin: '1FMCU0G64LUA12345',
+    brand: 'Ford',
+    model: 'Escape SE',
+    year: 2021,
+    licensePlate: 'GHI-9012',
+    mileage: 62000,
+    healthStatus: 'critical',
+    createdAt: '2025-06-10T16:45:00Z',
+    updatedAt: '2026-05-11T18:30:00Z',
+  },
+];
