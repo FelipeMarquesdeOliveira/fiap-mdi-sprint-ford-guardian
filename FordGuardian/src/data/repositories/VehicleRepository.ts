@@ -3,8 +3,20 @@ import { storageService } from '../../infrastructure/storage';
 import { STORAGE_KEYS } from '../../infrastructure/storage/StorageKeys';
 import { MOCK_VEHICLES } from '../mocks';
 
+// Version key to force mock data refresh when we update mock data
+const MOCK_DATA_VERSION = 'v2';
+const MOCK_VERSION_KEY = '@ford_guardian_mock_version';
+
 export const vehicleRepository = {
   async getAll(): Promise<Vehicle[]> {
+    // Check if mock data version changed — if so, reset to new mocks
+    const currentVersion = await storageService.get<string>(MOCK_VERSION_KEY);
+    if (currentVersion !== MOCK_DATA_VERSION) {
+      await storageService.set(STORAGE_KEYS.VEHICLES, MOCK_VEHICLES);
+      await storageService.set(MOCK_VERSION_KEY, MOCK_DATA_VERSION);
+      return MOCK_VEHICLES;
+    }
+
     const vehicles = await storageService.get<Vehicle[]>(STORAGE_KEYS.VEHICLES);
     if (!vehicles || vehicles.length === 0) {
       await storageService.set(STORAGE_KEYS.VEHICLES, MOCK_VEHICLES);

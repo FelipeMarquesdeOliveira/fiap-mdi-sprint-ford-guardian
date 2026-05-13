@@ -116,7 +116,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
+    backgroundColor: FORD_COLORS.WHITE,
   },
   scrollContent: {
     flexGrow: 1,

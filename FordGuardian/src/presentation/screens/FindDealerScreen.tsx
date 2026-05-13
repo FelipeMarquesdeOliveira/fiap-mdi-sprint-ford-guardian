@@ -120,7 +120,9 @@ const styles = StyleSheet.create({
     backgroundColor: FORD_COLORS.LIGHT_GRAY,
   },
   header: {
-    padding: SPACING.lg,
+    paddingTop: 16,
+    paddingBottom: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
     backgroundColor: FORD_COLORS.FORD_BLUE,
   },
   headerTitle: {

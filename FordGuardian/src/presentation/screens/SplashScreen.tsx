@@ -1,37 +1,72 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Animated, Image, Easing } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { onboardingStorage, authStorage } from '../../infrastructure/storage';
-import { FORD_COLORS, SPACING } from '../../shared/theme';
-import { ROUTES } from '../../shared/constants';
+import { FORD_COLORS } from '../../shared/theme';
+import { ROUTES, FORD_LOGO } from '../../shared/constants';
 
 type SplashScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.6)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const taglineOpacity = useRef(new Animated.Value(0)).current;
+  const taglineTranslateY = useRef(new Animated.Value(15)).current;
+  const lineWidth = useRef(new Animated.Value(0)).current;
+  const footerOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
+    // Sequenced animation: logo → line → tagline → footer
+    Animated.sequence([
+      // 1) Logo fades in and scales up
+      Animated.parallel([
+        Animated.spring(logoScale, {
+          toValue: 1,
+          tension: 40,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+      // 2) Line draws from center
+      Animated.timing(lineWidth, {
         toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
       }),
-      Animated.timing(opacityAnim, {
+      // 3) Tagline slides up and fades in
+      Animated.parallel([
+        Animated.timing(taglineOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(taglineTranslateY, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]),
+      // 4) Footer fades in
+      Animated.timing(footerOpacity, {
         toValue: 1,
-        duration: 800,
+        duration: 300,
         useNativeDriver: true,
       }),
     ]).start();
 
+    // Navigate after delay
     const timer = setTimeout(() => {
       checkAuthState();
-    }, 2500);
+    }, 2800);
 
     return () => clearTimeout(timer);
   }, []);
@@ -55,23 +90,32 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
         style={[
           styles.content,
           {
-            transform: [{ scale: scaleAnim }],
-            opacity: opacityAnim,
+            transform: [{ scale: logoScale }],
+            opacity: logoOpacity,
           },
         ]}
       >
-        <View style={styles.logoWrap}>
-          <MaterialCommunityIcons name="alpha-f-box" size={72} color={FORD_COLORS.FORD_BLUE} />
-        </View>
-        <View style={styles.brandRow}>
-          <View style={styles.fordTag}>
-            <Text style={styles.fordTagText}>FORD</Text>
-          </View>
-          <Text style={styles.guardianText}>GUARDIAN</Text>
-        </View>
-        <View style={styles.divider} />
+        <Image source={FORD_LOGO} style={styles.logo} resizeMode="contain" />
+      </Animated.View>
+
+      <Animated.View style={[styles.line, {
+        width: lineWidth.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 40],
+        }),
+      }]} />
+
+      <Animated.View style={{
+        opacity: taglineOpacity,
+        transform: [{ translateY: taglineTranslateY }],
+      }}>
+        <Text style={styles.guardianText}>GUARDIAN</Text>
         <Text style={styles.tagline}>Proteção inteligente para seu veículo</Text>
       </Animated.View>
+
+      <Animated.Text style={[styles.footerText, { opacity: footerOpacity }]}>
+        Ford x FIAP
+      </Animated.Text>
     </View>
   );
 };
@@ -86,42 +130,34 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
   },
-  logoWrap: {
-    marginBottom: 20,
+  logo: {
+    width: 140,
+    height: 56,
   },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  fordTag: {
+  line: {
+    height: 2,
     backgroundColor: FORD_COLORS.FORD_BLUE,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 4,
-    marginRight: 12,
-  },
-  fordTagText: {
-    color: FORD_COLORS.WHITE,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 1,
+    marginVertical: 24,
   },
   guardianText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '300',
     color: FORD_COLORS.FORD_DARK_BLUE,
-    letterSpacing: 2,
-  },
-  divider: {
-    width: 40,
-    height: 2,
-    backgroundColor: FORD_COLORS.FORD_BLUE,
-    marginBottom: 16,
+    letterSpacing: 8,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   tagline: {
     fontSize: 13,
     color: FORD_COLORS.DARK_GRAY,
     letterSpacing: 0.3,
+    textAlign: 'center',
+  },
+  footerText: {
+    position: 'absolute',
+    bottom: 40,
+    fontSize: 11,
+    color: FORD_COLORS.MEDIUM_GRAY,
+    letterSpacing: 1,
   },
 });

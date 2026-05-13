@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Switch } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert, Switch, Image, Animated, TouchableOpacity } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { userRepository } from '../../data/repositories';
 import { User } from '../../domain/entities/User';
-import { FORD_COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../shared/theme';
-import { ROUTES } from '../../shared/constants';
-import { Button, Card, FordLogo } from '../components';
+import { FORD_COLORS, SPACING, TYPOGRAPHY } from '../../shared/theme';
+import { ROUTES, FORD_LOGO } from '../../shared/constants';
+import { Button } from '../components';
 
 type ProfileScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -15,9 +16,22 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Animations
+  const headerAnim = useRef(new Animated.Value(0)).current;
+  const contentAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     loadUser();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      Animated.stagger(120, [
+        Animated.spring(headerAnim, { toValue: 1, tension: 50, friction: 10, useNativeDriver: true }),
+        Animated.spring(contentAnim, { toValue: 1, tension: 50, friction: 10, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [loading]);
 
   const loadUser = async () => {
     try {
@@ -53,197 +67,218 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <View style={styles.avatarContainer}>
+      {/* Header */}
+      <Animated.View style={[
+        styles.header,
+        {
+          opacity: headerAnim,
+          transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
+        },
+      ]}>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>Perfil</Text>
+          <Image source={FORD_LOGO} style={styles.headerLogo} resizeMode="contain" />
+        </View>
+
+        {/* User info */}
+        <View style={styles.userSection}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </Text>
           </View>
-          <View style={styles.avatarBadge}>
-            <FordLogo size={20} color={FORD_COLORS.FORD_BLUE} />
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{user?.name || 'Usuário'}</Text>
+            <Text style={styles.userEmail}>{user?.email || ''}</Text>
           </View>
         </View>
-        <Text style={styles.userName}>{user?.name || 'Usuário'}</Text>
-        <Text style={styles.userEmail}>{user?.email || ''}</Text>
-      </View>
+      </Animated.View>
 
-      <View style={styles.content}>
-        <Card style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Dados Pessoais</Text>
+      {/* Content */}
+      <Animated.View style={[
+        styles.content,
+        {
+          opacity: contentAnim,
+          transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+        },
+      ]}>
+        {/* Personal data */}
+        <Text style={styles.sectionTitle}>Dados Pessoais</Text>
+        <View style={styles.section}>
+          <InfoRow label="Nome" value={user?.name || '—'} />
+          <InfoRow label="Email" value={user?.email || '—'} />
+          <InfoRow label="Telefone" value={user?.phone || '—'} last />
+        </View>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Nome</Text>
-            <Text style={styles.infoValue}>{user?.name}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Email</Text>
-            <Text style={styles.infoValue}>{user?.email}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Telefone</Text>
-            <Text style={styles.infoValue}>{user?.phone}</Text>
-          </View>
-        </Card>
-
-        <Card style={styles.preferencesCard}>
-          <Text style={styles.sectionTitle}>Preferências</Text>
-
+        {/* Preferences */}
+        <Text style={styles.sectionTitle}>Preferências</Text>
+        <View style={styles.section}>
           <View style={styles.preferenceRow}>
-            <View style={styles.preferenceInfo}>
-              <Text style={styles.preferenceTitle}>Notificações</Text>
-              <Text style={styles.preferenceDescription}>Alertas sobre seu veículo</Text>
+            <View>
+              <Text style={styles.prefTitle}>Notificações</Text>
+              <Text style={styles.prefDesc}>Alertas sobre seu veículo</Text>
             </View>
             <Switch
               value={user?.preferences?.notificationsEnabled ?? true}
-              trackColor={{ false: FORD_COLORS.MEDIUM_GRAY, true: FORD_COLORS.FORD_BLUE }}
+              trackColor={{ false: '#D8D8D8', true: FORD_COLORS.FORD_BLUE }}
               thumbColor={FORD_COLORS.WHITE}
             />
           </View>
-        </Card>
+        </View>
 
-        <Card style={styles.aboutCard}>
-          <Text style={styles.sectionTitle}>Sobre</Text>
-          <View style={styles.aboutRow}>
-            <Text style={styles.aboutLabel}>Versão</Text>
-            <Text style={styles.aboutValue}>1.0.0</Text>
-          </View>
-          <View style={styles.aboutRow}>
-            <Text style={styles.aboutLabel}>Projeto</Text>
-            <Text style={styles.aboutValue}>Ford x FIAP</Text>
-          </View>
-        </Card>
+        {/* About */}
+        <Text style={styles.sectionTitle}>Sobre</Text>
+        <View style={styles.section}>
+          <InfoRow label="Versão" value="1.0.0" />
+          <InfoRow label="Projeto" value="Ford x FIAP" last />
+        </View>
 
-        <Button
-          title="Sair da Conta"
-          onPress={handleLogout}
-          variant="outline"
-          style={styles.logoutButton}
-        />
-      </View>
+        {/* Logout */}
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.7}>
+          <MaterialCommunityIcons name="logout" size={18} color={FORD_COLORS.ERROR} />
+          <Text style={styles.logoutText}>Sair da Conta</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </ScrollView>
   );
 };
 
+// Info row component
+const InfoRow = ({ label, value, last }: { label: string; value: string; last?: boolean }) => (
+  <View style={[irStyles.row, !last && irStyles.border]}>
+    <Text style={irStyles.label}>{label}</Text>
+    <Text style={irStyles.value}>{value}</Text>
+  </View>
+);
+
+const irStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+  },
+  border: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F3F3',
+  },
+  label: {
+    fontSize: 14,
+    color: FORD_COLORS.DARK_GRAY,
+  },
+  value: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: FORD_COLORS.FORD_CHARCOAL,
+  },
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
+    backgroundColor: FORD_COLORS.WHITE,
   },
   header: {
-    backgroundColor: FORD_COLORS.FORD_DARK_BLUE,
-    alignItems: 'center',
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.lg,
+    paddingTop: 52,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: SPACING.md,
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: FORD_COLORS.FORD_DARK_BLUE,
+  },
+  headerLogo: {
+    width: 60,
+    height: 24,
+  },
+  userSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: FORD_COLORS.WHITE,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: FORD_COLORS.FORD_BLUE,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 32,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: FORD_COLORS.FORD_BLUE,
+    fontSize: 24,
+    fontWeight: '700',
+    color: FORD_COLORS.WHITE,
   },
-  avatarBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: FORD_COLORS.WHITE,
-    justifyContent: 'center',
-    alignItems: 'center',
+  userInfo: {
+    marginLeft: 14,
   },
   userName: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: FORD_COLORS.WHITE,
-    marginBottom: SPACING.xs,
+    fontSize: 18,
+    fontWeight: '600',
+    color: FORD_COLORS.FORD_DARK_BLUE,
   },
   userEmail: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: FORD_COLORS.WHITE,
-    opacity: 0.8,
+    fontSize: 13,
+    color: FORD_COLORS.DARK_GRAY,
+    marginTop: 2,
   },
   content: {
-    padding: SPACING.lg,
-  },
-  infoCard: {
-    marginBottom: SPACING.md,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
   },
   sectionTitle: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: FORD_COLORS.FORD_DARK_BLUE,
-    marginBottom: SPACING.md,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: FORD_COLORS.LIGHT_GRAY,
-  },
-  infoLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontSize: 13,
+    fontWeight: '600',
     color: FORD_COLORS.DARK_GRAY,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 16,
   },
-  infoValue: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: FORD_COLORS.FORD_CHARCOAL,
-  },
-  preferencesCard: {
-    marginBottom: SPACING.md,
+  section: {
+    backgroundColor: '#FAFAFA',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   preferenceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
+    paddingVertical: 14,
   },
-  preferenceInfo: {
-    flex: 1,
-  },
-  preferenceTitle: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
+  prefTitle: {
+    fontSize: 14,
+    fontWeight: '500',
     color: FORD_COLORS.FORD_CHARCOAL,
   },
-  preferenceDescription: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+  prefDesc: {
+    fontSize: 12,
     color: FORD_COLORS.DARK_GRAY,
+    marginTop: 2,
   },
-  aboutCard: {
-    marginBottom: SPACING.lg,
-  },
-  aboutRow: {
+  logoutBtn: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: SPACING.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    marginTop: 24,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    gap: 8,
   },
-  aboutLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: FORD_COLORS.DARK_GRAY,
-  },
-  aboutValue: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: FORD_COLORS.FORD_CHARCOAL,
-  },
-  logoutButton: {
-    marginBottom: SPACING.xl,
+  logoutText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: FORD_COLORS.ERROR,
   },
 });

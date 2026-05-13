@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Image, Animated, Easing } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { userRepository } from '../../data/repositories';
-import { FORD_COLORS, SPACING, TYPOGRAPHY } from '../../shared/theme';
-import { ROUTES } from '../../shared/constants';
-import { Button, Input, Card } from '../components';
+import { FORD_COLORS, SPACING } from '../../shared/theme';
+import { ROUTES, FORD_LOGO } from '../../shared/constants';
+import { Button, Input } from '../components';
 
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -15,6 +15,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Animations
+  const logoAnim = useRef(new Animated.Value(0)).current;
+  const formAnim = useRef(new Animated.Value(0)).current;
+  const footerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.stagger(150, [
+      Animated.spring(logoAnim, { toValue: 1, tension: 50, friction: 10, useNativeDriver: true }),
+      Animated.spring(formAnim, { toValue: 1, tension: 50, friction: 10, useNativeDriver: true }),
+      Animated.timing(footerAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+    ]).start();
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -40,16 +53,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoText}>FG</Text>
-          </View>
-          <Text style={styles.title}>Ford Guardian</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Animated.View style={[
+          styles.header,
+          {
+            opacity: logoAnim,
+            transform: [{ translateY: logoAnim.interpolate({ inputRange: [0, 1], outputRange: [-30, 0] }) }],
+          },
+        ]}>
+          <Image source={FORD_LOGO} style={styles.logo} resizeMode="contain" />
+          <View style={styles.line} />
           <Text style={styles.subtitle}>Acesse sua conta</Text>
-        </View>
+        </Animated.View>
 
-        <Card style={styles.formCard}>
+        <Animated.View style={[
+          styles.form,
+          {
+            opacity: formAnim,
+            transform: [{ translateY: formAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+          },
+        ]}>
           <Input
             label="Email"
             value={email}
@@ -72,17 +95,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             loading={loading}
             style={styles.button}
           />
-        </Card>
+        </Animated.View>
 
-        <View style={styles.registerContainer}>
+        <Animated.View style={[styles.registerContainer, { opacity: footerAnim }]}>
           <Text style={styles.registerText}>Não tem conta? </Text>
-          <Button
-            title="Cadastre-se"
-            onPress={() => navigation.navigate(ROUTES.REGISTER)}
-            variant="outline"
-            size="small"
-          />
-        </View>
+          <TouchableOpacity onPress={() => navigation.navigate(ROUTES.REGISTER)}>
+            <Text style={styles.registerLink}>Cadastre-se</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -91,59 +111,56 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
+    backgroundColor: FORD_COLORS.WHITE,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: SPACING.lg,
+    padding: 28,
   },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    marginBottom: 40,
   },
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  logo: {
+    width: 110,
+    height: 44,
+    marginBottom: 16,
+  },
+  line: {
+    width: 28,
+    height: 2,
     backgroundColor: FORD_COLORS.FORD_BLUE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: FORD_COLORS.WHITE,
-  },
-  title: {
-    fontSize: TYPOGRAPHY.fontSize.xxl,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: FORD_COLORS.FORD_DARK_BLUE,
+    marginBottom: 16,
   },
   subtitle: {
-    fontSize: TYPOGRAPHY.fontSize.md,
+    fontSize: 15,
     color: FORD_COLORS.DARK_GRAY,
-    marginTop: SPACING.xs,
+    letterSpacing: 0.3,
   },
-  formCard: {
-    padding: SPACING.lg,
+  form: {
+    marginBottom: 24,
   },
   errorText: {
     color: FORD_COLORS.ERROR,
-    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontSize: 13,
     marginBottom: SPACING.md,
   },
   button: {
-    marginTop: SPACING.md,
+    marginTop: SPACING.sm,
   },
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SPACING.lg,
   },
   registerText: {
     color: FORD_COLORS.DARK_GRAY,
+    fontSize: 14,
+  },
+  registerLink: {
+    color: FORD_COLORS.FORD_BLUE,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
