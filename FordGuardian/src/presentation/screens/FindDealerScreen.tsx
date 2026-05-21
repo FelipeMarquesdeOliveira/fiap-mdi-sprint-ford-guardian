@@ -14,11 +14,16 @@ type FindDealerScreenProps = {
   route?: any;
 };
 
-const RADIUS_KM = 10;
-
 interface DisplayDealer extends Dealer {
   distanceKm?: number;
 }
+
+const DEALER_ADDRESSES: Record<string, string> = {
+  '1': 'Av. Reboucas, 1800 - Pinheiros, São Paulo, SP',
+  '2': 'Av. Nobel, 350 - Butantã, São Paulo, SP',
+  '3': 'Av. Adolfo Foloni, 500 - Santo Amaro, São Paulo, SP',
+  '4': 'Av. Interlagos, 4500 - Interlagos, São Paulo, SP',
+};
 
 export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, route }) => {
   const vehicleId = route?.params?.vehicleId;
@@ -28,41 +33,41 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
   const [loadingLocation, setLoadingLocation] = useState(true);
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [searchTriggered, setSearchTriggered] = useState(false);
 
   useEffect(() => {
-    initLocation();
+    initScreen();
   }, []);
 
-  const initLocation = () => {
-    requestLocationPermission();
+  const initScreen = () => {
+    setDealers(MOCK_DEALERS as DisplayDealer[]);
+    requestLocation();
   };
 
-  const requestLocationPermission = async () => {
+  const requestLocation = async () => {
     if (Platform.OS === 'android') {
       try {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
             title: 'Localização',
-            message: 'Precisamos da sua localização para encontrar concessionárias próximas',
-            buttonNeutral: 'Perguntar depois',
-            buttonNegative: 'Cancelar',
+            message: 'Precisamos da sua localização para calcular distâncias',
+            buttonNeutral: 'Depois',
+            buttonNegative: 'Não',
             buttonPositive: 'OK',
           },
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           getCurrentLocation();
         } else {
-          setLocationError('Permissão de localização negada');
+          setLocationError('Localização não permitida');
           setLoadingLocation(false);
-          loadMockDealers();
+          setLoading(false);
         }
       } catch (err) {
-        console.warn(err);
-        setLocationError('Erro ao solicitar permissão');
+        console.warn('Permission error:', err);
+        setLocationError('Erro ao buscar localização');
         setLoadingLocation(false);
-        loadMockDealers();
+        setLoading(false);
       }
     } else {
       getCurrentLocation();
@@ -72,107 +77,89 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
   const getCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setUserLocation({
+        const loc = {
           lat: position.coords.latitude,
           lon: position.coords.longitude,
-        });
-        fetchNearbyDealers(position.coords.latitude, position.coords.longitude);
+        };
+        setUserLocation(loc);
+        updateDealerDistances(loc.lat, loc.lon);
       },
       (error) => {
-        console.warn('Error getting location:', error);
-        setLocationError('Não foi possível obter sua localização');
+        console.warn('Location error:', error);
+        setLocationError('Não foi possível obter localização');
         setLoadingLocation(false);
-        loadMockDealers();
+        setLoading(false);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   };
 
-  const loadMockDealers = () => {
-    const mockWithDistance: DisplayDealer[] = MOCK_DEALERS.map(d => ({
-      ...d,
-      distanceKm: d.distance,
-    }));
-    setDealers(mockWithDistance);
-    setLoading(false);
-  };
-
-  const fetchNearbyDealers = async (lat: number, lon: number, searchQuery?: string) => {
+  const updateDealerDistances = async (lat: number, lon: number) => {
     try {
-      setLoading(true);
-      setLoadingLocation(false);
+      const dealersWithDistance: DisplayDealer[] = [];
 
-      let query = 'Ford+concessionaria';
-      if (searchQuery && searchQuery.trim()) {
-        query = `Ford+concessionaria+${searchQuery.replace(/ /g, '+')}`;
+      for (const dealer of MOCK_DEALERS) {
+        const address = DEALER_ADDRESSES[dealer.id] || dealer.address;
+        try {
+          const coords = await nominatimApi.getDealerCoordinates(address);
+          if (coords) {
+            const dist = calculateDistance(lat, lon, coords.lat, coords.lon);
+            dealersWithDistance.push({ ...dealer, distanceKm: Math.round(dist * 10) / 10 });
+          } else {
+            dealersWithDistance.push({ ...dealer, distanceKm: dealer.distance });
+          }
+        } catch (e) {
+          console.warn('Error for dealer', dealer.id, e);
+          dealersWithDistance.push({ ...dealer, distanceKm: dealer.distance });
+        }
       }
 
-      const nearby = await nominatimApi.findNearbyDealers(lat, lon, RADIUS_KM);
-
-      if (nearby.length > 0) {
-        const dealersWithDistance: DisplayDealer[] = nearby.map((d, index) => ({
-          id: `nearby_${index}`,
-          name: d.name.split(',')[0] || d.name,
-          address: d.address,
-          city: d.address.split(',').length > 2 ? d.address.split(',')[2].trim() : 'São Paulo',
-          state: 'SP',
-          phone: '',
-          distanceKm: d.distance ? Math.round(d.distance * 10) / 10 : undefined,
-          rating: 4.5,
-          services: ['Revisão Geral', 'Troca de Óleo', 'Freios'],
-        }));
-
-        dealersWithDistance.sort((a, b) => (a.distanceKm || 999) - (b.distanceKm || 999));
-        setDealers(dealersWithDistance);
-      } else {
-        loadMockDealers();
-      }
+      dealersWithDistance.sort((a, b) => (a.distanceKm || 999) - (b.distanceKm || 999));
+      setDealers(dealersWithDistance);
     } catch (error) {
-      console.error('Error fetching nearby dealers:', error);
-      loadMockDealers();
+      console.error('Error updating distances:', error);
+      setDealers(MOCK_DEALERS as DisplayDealer[]);
     } finally {
+      setLoadingLocation(false);
       setLoading(false);
     }
   };
 
-  const handleSearch = () => {
-    setSearchTriggered(true);
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
 
-    if (!userLocation) {
-      if (searchText.trim()) {
-        geocodeSearchAddress();
-      } else {
-        Alert.alert('Localização indisponível', 'Busque por um endereço ou permita o acesso à localização');
+  const handleSearch = async () => {
+    if (!searchText.trim()) {
+      if (userLocation) {
+        updateDealerDistances(userLocation.lat, userLocation.lon);
       }
       return;
     }
-
-    if (searchText.trim()) {
-      geocodeSearchAddress();
-    } else {
-      fetchNearbyDealers(userLocation.lat, userLocation.lon);
-    }
-  };
-
-  const geocodeSearchAddress = async () => {
-    if (!searchText.trim()) return;
 
     setLoading(true);
     try {
       const results = await nominatimApi.searchAddress(searchText + ', São Paulo, Brazil');
       if (results.length > 0) {
-        const location = {
+        const loc = {
           lat: parseFloat(results[0].lat),
           lon: parseFloat(results[0].lon),
         };
-        setUserLocation(location);
-        await fetchNearbyDealers(location.lat, location.lon, searchText);
+        setUserLocation(loc);
+        updateDealerDistances(loc.lat, loc.lon);
       } else {
-        Alert.alert('Não encontrado', 'Não encontramos concessionárias para essa busca');
         setLoading(false);
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível realizar a busca');
+      console.error('Search error:', error);
       setLoading(false);
     }
   };
@@ -183,9 +170,13 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
     }
   };
 
-  const sortedDealers = [...dealers].sort((a, b) => (a.distanceKm || 999) - (b.distanceKm || 999));
+  const filteredDealers = dealers.filter(d =>
+    !searchText.trim() ||
+    d.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    d.city.toLowerCase().includes(searchText.toLowerCase())
+  );
 
-  const renderDealerCard = ({ item }: { item: DisplayDealer }) => (
+  const renderDealer = ({ item }: { item: DisplayDealer }) => (
     <Card style={styles.dealerCard}>
       <View style={styles.dealerHeader}>
         <View style={styles.dealerLogo}>
@@ -194,9 +185,7 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
         <View style={styles.dealerInfo}>
           <Text style={styles.dealerName}>{item.name}</Text>
           {item.rating && (
-            <View style={styles.ratingRow}>
-              <Text style={styles.rating}>⭐ {item.rating}</Text>
-            </View>
+            <Text style={styles.ratingText}>⭐ {item.rating}</Text>
           )}
         </View>
         {item.distanceKm !== undefined && (
@@ -219,16 +208,14 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
         )}
       </View>
 
-      {item.services && item.services.length > 0 && (
-        <View style={styles.servicesContainer}>
-          <Text style={styles.servicesLabel}>Serviços:</Text>
-          <View style={styles.servicesTags}>
-            {item.services.slice(0, 4).map((service: string, index: number) => (
-              <Text key={index} style={styles.serviceTag}>{service}</Text>
-            ))}
-          </View>
+      <View style={styles.servicesContainer}>
+        <Text style={styles.servicesLabel}>Serviços:</Text>
+        <View style={styles.servicesTags}>
+          {item.services.slice(0, 3).map((service, index) => (
+            <Text key={index} style={styles.serviceTag}>{service}</Text>
+          ))}
         </View>
-      )}
+      </View>
 
       <View style={styles.actions}>
         {item.phone ? (
@@ -252,28 +239,10 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
     </Card>
   );
 
-  const ListEmptyComponent = () => (
+  const ListEmpty = () => (
     <View style={styles.emptyContainer}>
-      {loading || loadingLocation ? (
-        <>
-          <ActivityIndicator color={FORD_COLORS.FORD_BLUE} size="large" />
-          <Text style={styles.emptyText}>
-            {loadingLocation ? 'Buscando sua localização...' : 'Buscando concessionárias...'}
-          </Text>
-        </>
-      ) : locationError ? (
-        <>
-          <Ionicons name="location-outline" size={48} color={FORD_COLORS.MEDIUM_GRAY} />
-          <Text style={styles.emptyText}>{locationError}</Text>
-          <Text style={styles.emptySubtext}>Você pode buscar por um endereço abaixo</Text>
-        </>
-      ) : (
-        <>
-          <Ionicons name="search" size={48} color={FORD_COLORS.MEDIUM_GRAY} />
-          <Text style={styles.emptyText}>Nenhuma concessionária encontrada</Text>
-          <Text style={styles.emptySubtext}>Tente buscar por outro endereço</Text>
-        </>
-      )}
+      <Ionicons name="business" size={48} color={FORD_COLORS.MEDIUM_GRAY} />
+      <Text style={styles.emptyText}>Nenhuma concessionária encontrada</Text>
     </View>
   );
 
@@ -282,7 +251,7 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Concessionárias Ford</Text>
         <Text style={styles.headerSubtitle}>
-          {loading ? 'Buscando...' : `${sortedDealers.length} encontradas em até ${RADIUS_KM} km`}
+          {loading ? 'Carregando...' : `${filteredDealers.length} concessionárias`}
         </Text>
       </View>
 
@@ -290,7 +259,7 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
         <View style={styles.searchInputContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar por endereço ou bairro..."
+            placeholder="Buscar por nome ou cidade..."
             value={searchText}
             onChangeText={setSearchText}
             onSubmitEditing={handleSearch}
@@ -308,29 +277,27 @@ export const FindDealerScreen: React.FC<FindDealerScreenProps> = ({ navigation, 
             )}
           </TouchableOpacity>
         </View>
-        {locationError && (
-          <Text style={styles.locationWarning}>
-            📍 {locationError}
-          </Text>
+        {loadingLocation && (
+          <View style={styles.loadingBanner}>
+            <ActivityIndicator size="small" color={FORD_COLORS.FORD_BLUE} />
+            <Text style={styles.loadingBannerText}>Calculando distâncias...</Text>
+          </View>
         )}
       </View>
 
       <FlatList
-        data={sortedDealers}
-        renderItem={renderDealerCard}
+        data={filteredDealers}
+        renderItem={renderDealer}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={ListEmptyComponent}
+        ListEmptyComponent={ListEmpty}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
-  },
+  container: { flex: 1, backgroundColor: FORD_COLORS.LIGHT_GRAY },
   header: {
     paddingTop: 16,
     paddingBottom: SPACING.lg,
@@ -354,10 +321,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: FORD_COLORS.LIGHT_GRAY,
   },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  searchInputContainer: { flexDirection: 'row', alignItems: 'center' },
   searchInput: {
     flex: 1,
     height: 44,
@@ -376,23 +340,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  locationWarning: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: FORD_COLORS.HEALTH_ATTENTION,
-    marginTop: SPACING.sm,
-  },
-  listContent: {
-    padding: SPACING.lg,
-    flexGrow: 1,
-  },
-  dealerCard: {
-    marginBottom: SPACING.md,
-  },
-  dealerHeader: {
+  loadingBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    justifyContent: 'center',
+    marginTop: SPACING.sm,
+    gap: SPACING.xs,
   },
+  loadingBannerText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: FORD_COLORS.FORD_BLUE,
+  },
+  listContent: { padding: SPACING.lg, flexGrow: 1 },
+  dealerCard: { marginBottom: SPACING.md },
+  dealerHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.md },
   dealerLogo: {
     width: 50,
     height: 50,
@@ -407,22 +368,13 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
-  dealerInfo: {
-    flex: 1,
-  },
+  dealerInfo: { flex: 1 },
   dealerName: {
     fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: FORD_COLORS.FORD_DARK_BLUE,
   },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: SPACING.xs,
-  },
-  rating: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-  },
+  ratingText: { fontSize: TYPOGRAPHY.fontSize.sm, marginTop: SPACING.xs },
   distanceBadge: {
     backgroundColor: FORD_COLORS.FORD_BLUE,
     paddingHorizontal: SPACING.sm,
@@ -434,37 +386,18 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: FORD_COLORS.WHITE,
   },
-  dealerDetails: {
-    marginBottom: SPACING.md,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.xs,
-  },
-  detailIcon: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    marginRight: SPACING.sm,
-  },
-  detailText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: FORD_COLORS.DARK_GRAY,
-    flex: 1,
-  },
-  servicesContainer: {
-    marginBottom: SPACING.md,
-  },
+  dealerDetails: { marginBottom: SPACING.md },
+  detailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.xs },
+  detailIcon: { fontSize: TYPOGRAPHY.fontSize.sm, marginRight: SPACING.sm },
+  detailText: { fontSize: TYPOGRAPHY.fontSize.sm, color: FORD_COLORS.DARK_GRAY, flex: 1 },
+  servicesContainer: { marginBottom: SPACING.md },
   servicesLabel: {
     fontSize: TYPOGRAPHY.fontSize.xs,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: FORD_COLORS.FORD_DARK_BLUE,
     marginBottom: SPACING.xs,
   },
-  servicesTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.xs,
-  },
+  servicesTags: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs },
   serviceTag: {
     fontSize: TYPOGRAPHY.fontSize.xs,
     color: FORD_COLORS.DARK_GRAY,
@@ -473,13 +406,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: BORDER_RADIUS.sm,
   },
-  actions: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-  },
-  actionButton: {
-    flex: 1,
-  },
+  actions: { flexDirection: 'row', gap: SPACING.sm },
+  actionButton: { flex: 1 },
   emptyContainer: {
     flex: 1,
     padding: SPACING.xl,
@@ -491,11 +419,5 @@ const styles = StyleSheet.create({
     color: FORD_COLORS.DARK_GRAY,
     textAlign: 'center',
     marginTop: SPACING.md,
-  },
-  emptySubtext: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: FORD_COLORS.MEDIUM_GRAY,
-    textAlign: 'center',
-    marginTop: SPACING.xs,
   },
 });
