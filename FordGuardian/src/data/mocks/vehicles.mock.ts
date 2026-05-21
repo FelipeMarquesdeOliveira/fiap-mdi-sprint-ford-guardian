@@ -1,12 +1,33 @@
-import { Vehicle } from '../../domain/entities/Vehicle';
+import { Vehicle, FipeDetails } from '../../domain/entities/Vehicle';
 
-// Ford vehicle image mapping - using reliable direct URLs
-export const FORD_VEHICLE_IMAGES: Record<string, string> = {
-  'Mustang GT': 'https://cdn.motor1.com/images/mgl/6Zozlp/s3/ford-mustang-gt-2024.jpg',
-  'F-150 XLT': 'https://cdn.motor1.com/images/mgl/MkO9NN/s3/ford-f-150-2024.jpg',
-  'Bronco Sport': 'https://cdn.motor1.com/images/mgl/W81Ypq/s3/ford-bronco-sport-2024.jpg',
-  'Ranger': 'https://cdn.motor1.com/images/mgl/QJl06/s3/ford-ranger-2023.jpg',
-  'Territory': 'https://cdn.motor1.com/images/mgl/nAGPBl/s3/ford-territory-2024.jpg',
+const MOCK_FIPE_DETAILS: Record<string, FipeDetails> = {
+  'Mustang GT': {
+    valor: 'R$ 489.950',
+    marca: 'Ford',
+    modelo: 'Mustang GT 5.0 V8 TiVCT',
+    anoModelo: 2024,
+    combustivel: 'Gasolina',
+    codigoFipe: '033-4',
+    referencia: 'Maio 2026',
+  },
+  'Bronco Sport': {
+    valor: 'R$ 189.990',
+    marca: 'Ford',
+    modelo: 'Bronco Sport Wildtrak',
+    anoModelo: 2024,
+    combustivel: 'Gasolina',
+    codigoFipe: '032-7',
+    referencia: 'Maio 2026',
+  },
+  'Ranger': {
+    valor: 'R$ 239.990',
+    marca: 'Ford',
+    modelo: 'Ranger XLT 2.0 BiTurbo',
+    anoModelo: 2023,
+    combustivel: 'Diesel',
+    codigoFipe: '033-1',
+    referencia: 'Maio 2026',
+  },
 };
 
 export const MOCK_VEHICLES: Vehicle[] = [
@@ -20,6 +41,7 @@ export const MOCK_VEHICLES: Vehicle[] = [
     licensePlate: 'FRD-1A23',
     mileage: 12500,
     healthStatus: 'normal',
+    fipeDetails: MOCK_FIPE_DETAILS['Mustang GT'],
     createdAt: '2026-01-15T10:30:00Z',
     updatedAt: '2026-05-10T14:20:00Z',
   },
@@ -33,6 +55,7 @@ export const MOCK_VEHICLES: Vehicle[] = [
     licensePlate: 'FRD-2B45',
     mileage: 31000,
     healthStatus: 'attention',
+    fipeDetails: MOCK_FIPE_DETAILS['Bronco Sport'],
     createdAt: '2025-11-20T08:00:00Z',
     updatedAt: '2026-05-12T09:15:00Z',
   },
@@ -46,6 +69,7 @@ export const MOCK_VEHICLES: Vehicle[] = [
     licensePlate: 'FRD-3C67',
     mileage: 58000,
     healthStatus: 'critical',
+    fipeDetails: MOCK_FIPE_DETAILS['Ranger'],
     createdAt: '2025-06-10T16:45:00Z',
     updatedAt: '2026-05-11T18:30:00Z',
   },

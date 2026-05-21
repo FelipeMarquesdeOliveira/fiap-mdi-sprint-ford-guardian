@@ -23,8 +23,9 @@ const SERVICE_TYPES: { label: string; value: ServiceType }[] = [
 ];
 
 export const RequestReviewScreen: React.FC<RequestReviewScreenProps> = ({ navigation, route }) => {
-  const { vehicleId } = route.params as { vehicleId: string };
-  const [vehicleName, setVehicleName] = useState('');
+  const params = route.params as { vehicleId?: string; dealerId?: string; dealerName?: string };
+  const { vehicleId, dealerId, dealerName } = params;
+  const [vehicleName, setVehicleName] = useState<string>('');
   const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
   const [preferredDate, setPreferredDate] = useState('');
   const [selectedDealer, setSelectedDealer] = useState<Dealer | null>(null);
@@ -32,9 +33,26 @@ export const RequestReviewScreen: React.FC<RequestReviewScreenProps> = ({ naviga
 
   useEffect(() => {
     loadVehicle();
-  }, [vehicleId]);
+    if (dealerId && dealerName) {
+      const dealer = MOCK_DEALERS.find(d => d.id === dealerId);
+      if (dealer) {
+        setSelectedDealer(dealer);
+      } else {
+        setSelectedDealer({
+          id: dealerId,
+          name: dealerName,
+          address: '',
+          city: '',
+          state: '',
+          phone: '',
+          services: [],
+        });
+      }
+    }
+  }, [vehicleId, dealerId, dealerName]);
 
   const loadVehicle = async () => {
+    if (!vehicleId) return;
     const vehicle = await vehicleRepository.getById(vehicleId);
     if (vehicle) {
       setVehicleName(`${vehicle.model} (${vehicle.licensePlate})`);
@@ -42,8 +60,13 @@ export const RequestReviewScreen: React.FC<RequestReviewScreenProps> = ({ naviga
   };
 
   const handleSubmit = async () => {
-    if (!selectedService || !preferredDate || !selectedDealer) {
-      Alert.alert('Atenção', 'Preencha todos os campos');
+    if (!selectedService || !preferredDate) {
+      Alert.alert('Atenção', 'Preencha o tipo de serviço e a data preferida');
+      return;
+    }
+
+    if (!selectedDealer && !dealerId) {
+      Alert.alert('Atenção', 'Selecione uma concessionária');
       return;
     }
 
@@ -51,13 +74,19 @@ export const RequestReviewScreen: React.FC<RequestReviewScreenProps> = ({ naviga
 
     await new Promise(resolve => setTimeout(resolve, 1500));
 
+    const dealerDisplayName = selectedDealer?.name || dealerName || 'Concessionária selecionada';
+
     Alert.alert(
       'Solicitação Enviada!',
-      `Sua revisão foi agendada para ${preferredDate} na ${selectedDealer.name}`,
+      `Sua revisão foi agendada para ${preferredDate} na ${dealerDisplayName}`,
       [{ text: 'OK', onPress: () => navigation.goBack() }]
     );
 
     setLoading(false);
+  };
+
+  const handleSelectDealer = () => {
+    navigation.navigate(ROUTES.FIND_DEALER, { vehicleId });
   };
 
   return (
@@ -65,7 +94,12 @@ export const RequestReviewScreen: React.FC<RequestReviewScreenProps> = ({ naviga
       <View style={styles.content}>
         <Card style={styles.card}>
           <Text style={styles.title}>Solicitar Revisão</Text>
-          <Text style={styles.subtitle}>Veículo: {vehicleName}</Text>
+          {vehicleName && (
+            <Text style={styles.subtitle}>Veículo: {vehicleName}</Text>
+          )}
+          {!vehicleId && (
+            <Text style={styles.subtitle}>Selecione um veículo ao agendar</Text>
+          )}
 
           <Text style={styles.sectionLabel}>Tipo de Serviço</Text>
           <View style={styles.serviceGrid}>
@@ -82,46 +116,45 @@ export const RequestReviewScreen: React.FC<RequestReviewScreenProps> = ({ naviga
           </View>
 
           <Input
-            label="Data Preferida"
+            label="Data Preferida *"
             value={preferredDate}
             onChangeText={setPreferredDate}
             placeholder="Ex: 20/05/2026"
           />
         </Card>
 
-        <Text style={styles.sectionTitle}>Selecione uma Concessionária</Text>
+        <Text style={styles.sectionTitle}>Concessionária</Text>
 
-        {MOCK_DEALERS.map((dealer) => (
-          <TouchableOpacity
-            key={dealer.id}
-            onPress={() => setSelectedDealer(dealer)}
-            activeOpacity={0.7}
-          >
-            <Card style={{ ...styles.dealerCard, borderColor: selectedDealer?.id === dealer.id ? FORD_COLORS.FORD_BLUE : 'transparent' }}>
-              <View style={styles.dealerHeader}>
-                <Text style={styles.dealerName}>{dealer.name}</Text>
-                {dealer.rating && (
-                  <View style={styles.ratingBadge}>
-                    <Text style={styles.ratingText}>⭐ {dealer.rating}</Text>
-                  </View>
+        {selectedDealer || dealerId ? (
+          <Card style={styles.selectedDealerCard}>
+            <View style={styles.dealerHeader}>
+              <View style={styles.dealerLogo}>
+                <Text style={styles.dealerLogoText}>Ford</Text>
+              </View>
+              <View style={styles.dealerInfo}>
+                <Text style={styles.dealerName}>{selectedDealer?.name || dealerName}</Text>
+                {selectedDealer?.address && (
+                  <Text style={styles.dealerAddress}>{selectedDealer.address}</Text>
                 )}
               </View>
-              <Text style={styles.dealerAddress}>{dealer.address}</Text>
-              <Text style={styles.dealerDistance}>{dealer.distance} km de distância</Text>
-              <View style={styles.dealerServices}>
-                {dealer.services.slice(0, 3).map((service, index) => (
-                  <Text key={index} style={styles.serviceTag}>{service}</Text>
-                ))}
-              </View>
+            </View>
+            <TouchableOpacity onPress={handleSelectDealer}>
+              <Text style={styles.changeDealerText}>Alterar concessionária</Text>
+            </TouchableOpacity>
+          </Card>
+        ) : (
+          <TouchableOpacity onPress={handleSelectDealer}>
+            <Card style={styles.selectDealerCard}>
+              <Text style={styles.selectDealerText}>+ Buscar concessionária próxima</Text>
             </Card>
           </TouchableOpacity>
-        ))}
+        )}
 
         <Button
           title="Confirmar Solicitação"
           onPress={handleSubmit}
           loading={loading}
-          disabled={!selectedService || !preferredDate || !selectedDealer}
+          disabled={!selectedService || !preferredDate || (!selectedDealer && !dealerId)}
           style={styles.submitButton}
         />
       </View>
@@ -172,54 +205,58 @@ const styles = StyleSheet.create({
   serviceButton: {
     marginBottom: SPACING.xs,
   },
-  dealerCard: {
-    marginBottom: SPACING.md,
-    borderWidth: 2,
+  selectDealerCard: {
+    marginBottom: SPACING.lg,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: FORD_COLORS.FORD_BLUE,
+    backgroundColor: 'transparent',
+  },
+  selectDealerText: {
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: FORD_COLORS.FORD_BLUE,
+    textAlign: 'center',
+    paddingVertical: SPACING.md,
+  },
+  selectedDealerCard: {
+    marginBottom: SPACING.lg,
   },
   dealerHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.sm,
+  },
+  dealerLogo: {
+    width: 50,
+    height: 50,
+    backgroundColor: FORD_COLORS.FORD_DARK_BLUE,
+    borderRadius: BORDER_RADIUS.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+  },
+  dealerLogoText: {
+    color: FORD_COLORS.WHITE,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+  },
+  dealerInfo: {
+    flex: 1,
   },
   dealerName: {
     fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: FORD_COLORS.FORD_DARK_BLUE,
-    flex: 1,
-  },
-  ratingBadge: {
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.sm,
-  },
-  ratingText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
   },
   dealerAddress: {
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: FORD_COLORS.DARK_GRAY,
-    marginBottom: SPACING.xs,
+    marginTop: SPACING.xs,
   },
-  dealerDistance: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+  changeDealerText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
     color: FORD_COLORS.FORD_BLUE,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    marginBottom: SPACING.sm,
-  },
-  dealerServices: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.xs,
-  },
-  serviceTag: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: FORD_COLORS.DARK_GRAY,
-    backgroundColor: FORD_COLORS.LIGHT_GRAY,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.sm,
+    textAlign: 'center',
   },
   submitButton: {
     marginTop: SPACING.md,

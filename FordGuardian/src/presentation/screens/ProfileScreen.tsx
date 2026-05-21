@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, Switch, Image, Animated, Tou
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { userRepository } from '../../data/repositories';
+import { vehicleRepository } from '../../data/repositories';
 import { User } from '../../domain/entities/User';
 import { FORD_COLORS, SPACING, TYPOGRAPHY } from '../../shared/theme';
 import { ROUTES, FORD_LOGO } from '../../shared/constants';
@@ -59,6 +60,24 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               index: 0,
               routes: [{ name: ROUTES.LOGIN }],
             });
+          },
+        },
+      ]
+    );
+  };
+
+  const handleResetData = () => {
+    Alert.alert(
+      'Resetar Dados',
+      'Isso irá limpar todos os veículos cadastrados e dados de demonstração. Continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Resetar',
+          style: 'destructive',
+          onPress: async () => {
+            await vehicleRepository.resetToMock();
+            Alert.alert('Sucesso', 'Dados resetados com sucesso!');
           },
         },
       ]
@@ -131,6 +150,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <View style={styles.section}>
           <InfoRow label="Versão" value="1.0.0" />
           <InfoRow label="Projeto" value="Ford x FIAP" last />
+        </View>
+
+        {/* Dev tools */}
+        <Text style={styles.sectionTitle}>Ferramentas</Text>
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.devButton} onPress={handleResetData} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="refresh" size={18} color={FORD_COLORS.HEALTH_ATTENTION} />
+            <Text style={styles.devButtonText}>Resetar Dados de Teste</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Logout */}
@@ -280,5 +308,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: FORD_COLORS.ERROR,
+  },
+  devButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    gap: 10,
+  },
+  devButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: FORD_COLORS.HEALTH_ATTENTION,
   },
 });

@@ -1,5 +1,15 @@
 export type HealthStatus = 'normal' | 'attention' | 'critical';
 
+export interface FipeDetails {
+  valor: string;
+  marca: string;
+  modelo: string;
+  anoModelo: number;
+  combustivel: string;
+  codigoFipe: string;
+  referencia: string;
+}
+
 export interface Vehicle {
   id: string;
   userId: string;
@@ -11,6 +21,7 @@ export interface Vehicle {
   mileage: number;
   imageUrl?: string;
   healthStatus: HealthStatus;
+  fipeDetails?: FipeDetails;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,4 +33,5 @@ export interface AddVehicleRequest {
   mileage: number;
   vin?: string;
   imageUrl?: string;
+  fipeDetails?: FipeDetails;
 }

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Animated, 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { vehicleRepository } from '../../data/repositories';
 import { alertRepository } from '../../data/repositories';
 import { Vehicle } from '../../domain/entities/Vehicle';
@@ -166,6 +167,40 @@ export const VehicleDetailsScreen: React.FC<VehicleDetailsScreenProps> = ({ navi
         <DetailRow label="Placa" value={vehicle.licensePlate} />
         <DetailRow label="VIN" value={vehicle.vin} mono />
       </Animated.View>
+
+      {/* Fipe Details - from Fipe API */}
+      {vehicle.fipeDetails && (
+        <Animated.View style={[
+          styles.fipeSection,
+          {
+            opacity: detailsAnim,
+            transform: [{ translateY: detailsAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+          },
+        ]}>
+          <View style={styles.fipeHeader}>
+            <Ionicons name="information-circle" size={18} color={FORD_COLORS.FORD_BLUE} />
+            <Text style={styles.fipeTitle}>Dados Fipe</Text>
+          </View>
+          <View style={styles.fipeCard}>
+            <View style={styles.fipeRow}>
+              <Text style={styles.fipeLabel}>Valor</Text>
+              <Text style={styles.fipeValue}>{vehicle.fipeDetails.valor}</Text>
+            </View>
+            <View style={styles.fipeRow}>
+              <Text style={styles.fipeLabel}>Combustível</Text>
+              <Text style={styles.fipeValue}>{vehicle.fipeDetails.combustivel}</Text>
+            </View>
+            <View style={styles.fipeRow}>
+              <Text style={styles.fipeLabel}>Código Fipe</Text>
+              <Text style={styles.fipeValue}>{vehicle.fipeDetails.codigoFipe}</Text>
+            </View>
+            <View style={styles.fipeRow}>
+              <Text style={styles.fipeLabel}>Referência</Text>
+              <Text style={styles.fipeValue}>{vehicle.fipeDetails.referencia}</Text>
+            </View>
+          </View>
+        </Animated.View>
+      )}
 
       {/* Alerts */}
       {alerts.length > 0 && (
@@ -383,6 +418,44 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     width: '100%',
+  },
+  fipeSection: {
+    marginHorizontal: 24,
+    marginTop: 8,
+  },
+  fipeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
+  },
+  fipeTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: FORD_COLORS.FORD_BLUE,
+  },
+  fipeCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 10,
+    padding: 14,
+    borderLeftWidth: 3,
+    borderLeftColor: FORD_COLORS.FORD_BLUE,
+  },
+  fipeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  fipeLabel: {
+    fontSize: 13,
+    color: FORD_COLORS.DARK_GRAY,
+  },
+  fipeValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: FORD_COLORS.FORD_DARK_BLUE,
   },
   errorContainer: {
     flex: 1,

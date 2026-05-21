@@ -12,8 +12,8 @@ import { FORD_COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY } from '../../shared/th
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'small' | 'medium' | 'large';
+variant?: 'primary' | 'secondary' | 'outline' | 'filled';
+size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
@@ -39,6 +39,8 @@ export const Button: React.FC<ButtonProps> = ({
         return FORD_COLORS.FORD_SILVER;
       case 'outline':
         return 'transparent';
+      case 'filled':
+        return FORD_COLORS.FORD_DARK_BLUE;
       default:
         return FORD_COLORS.FORD_BLUE;
     }
