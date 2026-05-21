@@ -222,7 +222,14 @@ export const AppNavigator: React.FC = () => {
           name={ROUTES.CAR_CONNECTION as keyof RootStackParamList}
           component={CarConnectionScreen}
           options={{
-            headerShown: false,
+            headerTitle: 'Conexão do Veículo',
+            headerTransparent: false,
+            headerStyle: {
+              backgroundColor: FORD_COLORS.WHITE,
+            },
+            headerTintColor: FORD_COLORS.FORD_BLUE,
+            headerShadowVisible: false,
+            headerBackTitleVisible: false,
           }}
         />
       </Stack.Navigator>
