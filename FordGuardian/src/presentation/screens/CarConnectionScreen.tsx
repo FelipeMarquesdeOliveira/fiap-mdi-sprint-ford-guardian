@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Animated, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Animated, TouchableOpacity, Dimensions, StatusBar } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -134,16 +134,20 @@ export const CarConnectionScreen: React.FC<CarConnectionScreenProps> = ({ naviga
 
   if (!vehicle) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Veículo não encontrado</Text>
-      </View>
+      <>
+        <StatusBar barStyle="light-content" backgroundColor={FORD_COLORS.FORD_BLUE} />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Veículo não encontrado</Text>
+        </View>
+      </>
     );
   }
 
   const telemetry = vehicle.telemetry;
-
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor={FORD_COLORS.FORD_BLUE} />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Connection Header */}
       <View style={styles.connectionHeader}>
         <View style={styles.connectionStatus}>
@@ -286,7 +290,8 @@ export const CarConnectionScreen: React.FC<CarConnectionScreenProps> = ({ naviga
       </View>
 
       <View style={styles.footer} />
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 };
 

@@ -33,18 +33,18 @@ export const vehicleRepository = {
   async add(request: AddVehicleRequest): Promise<Vehicle> {
     const vehicles = await this.getAll();
     
-    const defaultTelemetry = {
-      engineTemp: 85,
-      oilLevel: 80,
-      batteryVoltage: 12.5,
-      tirePressure: 32,
-      fuelLevel: 75,
-      mileage: request.mileage,
+    const randomTelemetry = () => ({
+      engineTemp: Math.floor(Math.random() * 30) + 70,
+      oilLevel: Math.floor(Math.random() * 40) + 50,
+      batteryVoltage: (Math.random() * 2 + 11).toFixed(1),
+      tirePressure: Math.floor(Math.random() * 10) + 28,
+      fuelLevel: Math.floor(Math.random() * 60) + 30,
+      mileage: 0,
       lastServiceDate: new Date().toISOString(),
       isEngineOn: false,
       speed: 0,
-      fuelConsumption: 10,
-    };
+      fuelConsumption: parseFloat((Math.random() * 5 + 8).toFixed(1)),
+    });
     
     const newVehicle: Vehicle = {
       id: Date.now().toString(),
@@ -56,9 +56,9 @@ export const vehicleRepository = {
       licensePlate: request.licensePlate,
       mileage: request.mileage,
       imageUrl: request.imageUrl,
-      healthStatus: 'normal',
-      connectionStatus: 'connected',
-      telemetry: defaultTelemetry,
+      healthStatus: 'normal' as const,
+      connectionStatus: 'connected' as const,
+      telemetry: randomTelemetry(),
       fipeDetails: request.fipeDetails,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

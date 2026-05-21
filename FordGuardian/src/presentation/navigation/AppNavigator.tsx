@@ -223,11 +223,14 @@ export const AppNavigator: React.FC = () => {
           component={CarConnectionScreen}
           options={{
             headerTitle: 'Conexão do Veículo',
-            headerTransparent: false,
+            headerTransparent: true,
             headerStyle: {
-              backgroundColor: FORD_COLORS.WHITE,
+              backgroundColor: FORD_COLORS.FORD_BLUE,
             },
-            headerTintColor: FORD_COLORS.FORD_BLUE,
+            headerTintColor: FORD_COLORS.WHITE,
+            headerTitleStyle: {
+              color: FORD_COLORS.WHITE,
+            },
             headerShadowVisible: false,
             headerBackTitleVisible: false,
           }}
