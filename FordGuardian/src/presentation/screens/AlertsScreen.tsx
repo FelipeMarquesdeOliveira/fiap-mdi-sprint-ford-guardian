@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Image, Animated } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Image, Animated, Dimensions } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { alertRepository } from '../../data/repositories';
 import { vehicleRepository } from '../../data/repositories';
@@ -9,6 +10,8 @@ import { Vehicle } from '../../domain/entities/Vehicle';
 import { FORD_COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../shared/theme';
 import { ROUTES, ALERT_SEVERITY_LABELS, FORD_LOGO } from '../../shared/constants';
 import { LoadingSpinner } from '../components';
+
+const { width } = Dimensions.get('window');
 
 type AlertsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -19,19 +22,24 @@ export const AlertsScreen: React.FC<AlertsScreenProps> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Entrance animation
   const headerAnim = useRef(new Animated.Value(0)).current;
-  const listAnim = useRef(new Animated.Value(0)).current;
+  const contentAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadAlerts();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadAlerts();
+    }, [])
+  );
+
   useEffect(() => {
     if (!loading) {
       Animated.stagger(120, [
         Animated.spring(headerAnim, { toValue: 1, tension: 50, friction: 10, useNativeDriver: true }),
-        Animated.spring(listAnim, { toValue: 1, tension: 50, friction: 10, useNativeDriver: true }),
+        Animated.spring(contentAnim, { toValue: 1, tension: 50, friction: 10, useNativeDriver: true }),
       ]).start();
     }
   }, [loading]);
@@ -81,20 +89,39 @@ export const AlertsScreen: React.FC<AlertsScreenProps> = ({ navigation }) => {
     }
   };
 
+  const getSeverityIcon = (severity: Alert['severity']) => {
+    switch (severity) {
+      case 'critical': return 'alert-circle';
+      case 'high': return 'alert';
+      case 'moderate': return 'information';
+      case 'low': return 'information-outline';
+    }
+  };
+
   const renderAlertItem = ({ item, index }: { item: Alert & { vehicle?: Vehicle }; index: number }) => (
     <TouchableOpacity
       onPress={() => handleAlertPress(item)}
       activeOpacity={0.7}
       style={[styles.alertItem, { borderLeftColor: getSeverityColor(item.severity) }]}
     >
+      <View style={styles.alertIconContainer}>
+        <MaterialCommunityIcons 
+          name={getSeverityIcon(item.severity)} 
+          size={24} 
+          color={getSeverityColor(item.severity)} 
+        />
+      </View>
       <View style={styles.alertLeft}>
         <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(item.severity) }]}>
           <Text style={styles.severityText}>{ALERT_SEVERITY_LABELS[item.severity]}</Text>
         </View>
         <Text style={styles.alertTitle}>{item.title}</Text>
-        <Text style={styles.alertDescription} numberOfLines={1}>{item.description}</Text>
+        <Text style={styles.alertDescription} numberOfLines={2}>{item.description}</Text>
         {item.vehicle && (
-          <Text style={styles.vehicleTag}>{item.vehicle.model} · {item.vehicle.licensePlate}</Text>
+          <View style={styles.vehicleTagContainer}>
+            <MaterialCommunityIcons name="car" size={12} color={FORD_COLORS.FORD_BLUE} />
+            <Text style={styles.vehicleTag}>{item.vehicle.model} · {item.vehicle.licensePlate}</Text>
+          </View>
         )}
       </View>
       <MaterialCommunityIcons name="chevron-right" size={20} color={FORD_COLORS.MEDIUM_GRAY} />
@@ -153,7 +180,7 @@ export const AlertsScreen: React.FC<AlertsScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: FORD_COLORS.WHITE,
+    backgroundColor: FORD_COLORS.LIGHT_GRAY,
   },
   header: {
     flexDirection: 'row',
@@ -162,17 +189,17 @@ const styles = StyleSheet.create({
     paddingTop: 52,
     paddingBottom: 16,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    backgroundColor: FORD_COLORS.FORD_BLUE,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: FORD_COLORS.FORD_DARK_BLUE,
+    color: FORD_COLORS.WHITE,
   },
   headerCount: {
     fontSize: 13,
-    color: FORD_COLORS.DARK_GRAY,
+    color: FORD_COLORS.WHITE,
+    opacity: 0.8,
     marginTop: 2,
   },
   headerLogo: {
@@ -180,18 +207,32 @@ const styles = StyleSheet.create({
     height: 24,
   },
   listContent: {
-    padding: 20,
+    padding: 16,
     flexGrow: 1,
   },
   alertItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     marginBottom: 10,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 10,
-    borderLeftWidth: 3,
+    backgroundColor: FORD_COLORS.WHITE,
+    borderRadius: BORDER_RADIUS.md,
+    borderLeftWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  alertIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: FORD_COLORS.LIGHT_GRAY,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   alertLeft: {
     flex: 1,
@@ -224,6 +265,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: FORD_COLORS.FORD_BLUE,
     fontWeight: '500',
+  },
+  vehicleTagContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 4,
   },
   emptyContainer: {
     flex: 1,
