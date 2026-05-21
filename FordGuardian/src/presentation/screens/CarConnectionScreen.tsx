@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Animated, TouchableOpacity, Dimensions, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Animated, TouchableOpacity, Dimensions, StatusBar, SafeAreaView } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -134,18 +134,18 @@ export const CarConnectionScreen: React.FC<CarConnectionScreenProps> = ({ naviga
 
   if (!vehicle) {
     return (
-      <>
+      <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" backgroundColor={FORD_COLORS.FORD_BLUE} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Veículo não encontrado</Text>
         </View>
-      </>
+      </SafeAreaView>
     );
   }
 
   const telemetry = vehicle.telemetry;
   return (
-    <>
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={FORD_COLORS.FORD_BLUE} />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Connection Header */}
@@ -291,7 +291,7 @@ export const CarConnectionScreen: React.FC<CarConnectionScreenProps> = ({ naviga
 
       <View style={styles.footer} />
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 };
 
@@ -326,6 +326,10 @@ const GaugeCard: React.FC<GaugeCardProps> = ({ label, value, unit, icon, status,
 );
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: FORD_COLORS.FORD_BLUE,
+  },
   container: {
     flex: 1,
     backgroundColor: FORD_COLORS.LIGHT_GRAY,
