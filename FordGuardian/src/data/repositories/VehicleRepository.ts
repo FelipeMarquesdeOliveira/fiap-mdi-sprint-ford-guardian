@@ -4,7 +4,7 @@ import { STORAGE_KEYS } from '../../infrastructure/storage/StorageKeys';
 import { MOCK_VEHICLES } from '../mocks';
 
 // Version key to force mock data refresh when we update mock data
-const MOCK_DATA_VERSION = 'v3';
+const MOCK_DATA_VERSION = 'v4';
 const MOCK_VERSION_KEY = '@ford_guardian_mock_version';
 
 export const vehicleRepository = {
@@ -32,6 +32,20 @@ export const vehicleRepository = {
 
   async add(request: AddVehicleRequest): Promise<Vehicle> {
     const vehicles = await this.getAll();
+    
+    const defaultTelemetry = {
+      engineTemp: 85,
+      oilLevel: 80,
+      batteryVoltage: 12.5,
+      tirePressure: 32,
+      fuelLevel: 75,
+      mileage: request.mileage,
+      lastServiceDate: new Date().toISOString(),
+      isEngineOn: false,
+      speed: 0,
+      fuelConsumption: 10,
+    };
+    
     const newVehicle: Vehicle = {
       id: Date.now().toString(),
       userId: 'user_1',
@@ -43,6 +57,8 @@ export const vehicleRepository = {
       mileage: request.mileage,
       imageUrl: request.imageUrl,
       healthStatus: 'normal',
+      connectionStatus: 'connected',
+      telemetry: defaultTelemetry,
       fipeDetails: request.fipeDetails,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

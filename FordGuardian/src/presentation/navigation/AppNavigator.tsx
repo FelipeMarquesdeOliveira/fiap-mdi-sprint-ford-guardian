@@ -18,6 +18,7 @@ import {
   FindDealerScreen,
   ProfileScreen,
   DashboardScreen,
+  CarConnectionScreen,
 } from '../screens';
 
 import { ROUTES, FORD_LOGO } from '../../shared/constants';
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   FindDealer: { vehicleId?: string };
   Profile: undefined;
   Dashboard: undefined;
+  CarConnection: { vehicleId: string };
 };
 
 export type MainTabsParamList = {
@@ -212,6 +214,13 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen
           name={ROUTES.DASHBOARD as keyof RootStackParamList}
           component={DashboardScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name={ROUTES.CAR_CONNECTION as keyof RootStackParamList}
+          component={CarConnectionScreen}
           options={{
             headerShown: false,
           }}

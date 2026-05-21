@@ -245,16 +245,26 @@ export const VehicleDetailsScreen: React.FC<VehicleDetailsScreenProps> = ({ navi
         },
       ]}>
         <Button
-          title="Solicitar Revisão"
-          onPress={() => navigation.navigate(ROUTES.REQUEST_REVIEW, { vehicleId })}
+          title="Ver Telemetria"
+          onPress={() => navigation.navigate(ROUTES.CAR_CONNECTION, { vehicleId })}
           style={styles.actionButton}
         />
-        <Button
-          title="Buscar Concessionária"
-          onPress={() => navigation.navigate(ROUTES.FIND_DEALER)}
-          variant="outline"
-          style={styles.actionButton}
-        />
+        <View style={styles.actionRow}>
+          <Button
+            title="Revisão"
+            onPress={() => navigation.navigate(ROUTES.REQUEST_REVIEW, { vehicleId })}
+            variant="outline"
+            size="small"
+            style={styles.actionButtonHalf}
+          />
+          <Button
+            title="Concessionária"
+            onPress={() => navigation.navigate(ROUTES.FIND_DEALER, { vehicleId })}
+            variant="outline"
+            size="small"
+            style={styles.actionButtonHalf}
+          />
+        </View>
       </Animated.View>
     </ScrollView>
   );
@@ -418,6 +428,13 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     width: '100%',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionButtonHalf: {
+    flex: 1,
   },
   fipeSection: {
     marginHorizontal: 24,

@@ -13,6 +13,7 @@ export const ROUTES = {
   REQUEST_REVIEW: 'RequestReview',
   FIND_DEALER: 'FindDealer',
   DASHBOARD: 'Dashboard',
+  CAR_CONNECTION: 'CarConnection',
 } as const;
 
 export const ONBOARDING_PAGES = [

@@ -1,4 +1,18 @@
 export type HealthStatus = 'normal' | 'attention' | 'critical';
+export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';
+
+export interface TelemetryData {
+  engineTemp: number;
+  oilLevel: number;
+  batteryVoltage: number;
+  tirePressure: number;
+  fuelLevel: number;
+  mileage: number;
+  lastServiceDate: string;
+  isEngineOn: boolean;
+  speed: number;
+  fuelConsumption: number;
+}
 
 export interface FipeDetails {
   valor: string;
@@ -21,6 +35,8 @@ export interface Vehicle {
   mileage: number;
   imageUrl?: string;
   healthStatus: HealthStatus;
+  connectionStatus: ConnectionStatus;
+  telemetry: TelemetryData;
   fipeDetails?: FipeDetails;
   createdAt: string;
   updatedAt: string;

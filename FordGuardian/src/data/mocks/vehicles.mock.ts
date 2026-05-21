@@ -1,4 +1,4 @@
-import { Vehicle, FipeDetails } from '../../domain/entities/Vehicle';
+import { Vehicle, TelemetryData, FipeDetails } from '../../domain/entities/Vehicle';
 
 const MOCK_FIPE_DETAILS: Record<string, FipeDetails> = {
   'Mustang GT': {
@@ -30,6 +30,45 @@ const MOCK_FIPE_DETAILS: Record<string, FipeDetails> = {
   },
 };
 
+const MOCK_TELEMETRY: Record<string, TelemetryData> = {
+  'Mustang GT': {
+    engineTemp: 92,
+    oilLevel: 85,
+    batteryVoltage: 12.6,
+    tirePressure: 32,
+    fuelLevel: 65,
+    mileage: 12500,
+    lastServiceDate: '2026-04-15',
+    isEngineOn: false,
+    speed: 0,
+    fuelConsumption: 12.5,
+  },
+  'Bronco Sport': {
+    engineTemp: 88,
+    oilLevel: 72,
+    batteryVoltage: 12.4,
+    tirePressure: 28,
+    fuelLevel: 45,
+    mileage: 31000,
+    lastServiceDate: '2026-02-20',
+    isEngineOn: false,
+    speed: 0,
+    fuelConsumption: 10.2,
+  },
+  'Ranger': {
+    engineTemp: 98,
+    oilLevel: 45,
+    batteryVoltage: 11.8,
+    tirePressure: 24,
+    fuelLevel: 30,
+    mileage: 58000,
+    lastServiceDate: '2025-11-10',
+    isEngineOn: true,
+    speed: 45,
+    fuelConsumption: 9.8,
+  },
+};
+
 export const MOCK_VEHICLES: Vehicle[] = [
   {
     id: '1',
@@ -41,6 +80,8 @@ export const MOCK_VEHICLES: Vehicle[] = [
     licensePlate: 'FRD-1A23',
     mileage: 12500,
     healthStatus: 'normal',
+    connectionStatus: 'connected',
+    telemetry: MOCK_TELEMETRY['Mustang GT'],
     fipeDetails: MOCK_FIPE_DETAILS['Mustang GT'],
     createdAt: '2026-01-15T10:30:00Z',
     updatedAt: '2026-05-10T14:20:00Z',
@@ -55,6 +96,8 @@ export const MOCK_VEHICLES: Vehicle[] = [
     licensePlate: 'FRD-2B45',
     mileage: 31000,
     healthStatus: 'attention',
+    connectionStatus: 'disconnected',
+    telemetry: MOCK_TELEMETRY['Bronco Sport'],
     fipeDetails: MOCK_FIPE_DETAILS['Bronco Sport'],
     createdAt: '2025-11-20T08:00:00Z',
     updatedAt: '2026-05-12T09:15:00Z',
@@ -69,6 +112,8 @@ export const MOCK_VEHICLES: Vehicle[] = [
     licensePlate: 'FRD-3C67',
     mileage: 58000,
     healthStatus: 'critical',
+    connectionStatus: 'connected',
+    telemetry: MOCK_TELEMETRY['Ranger'],
     fipeDetails: MOCK_FIPE_DETAILS['Ranger'],
     createdAt: '2025-06-10T16:45:00Z',
     updatedAt: '2026-05-11T18:30:00Z',

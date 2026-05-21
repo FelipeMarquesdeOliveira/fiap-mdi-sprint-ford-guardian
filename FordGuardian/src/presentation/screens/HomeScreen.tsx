@@ -256,14 +256,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         ]}>
           <Text style={styles.vehicleName}>{currentVehicle.model}</Text>
           <View style={styles.metaRow}>
+            <View style={[styles.connectionBadge, currentVehicle.connectionStatus === 'connected' ? styles.connectedBadge : currentVehicle.connectionStatus === 'connecting' ? styles.connectingBadge : styles.disconnectedBadge]}>
+              <View style={[styles.connectionDot, currentVehicle.connectionStatus === 'connected' && styles.connectedDot]} />
+              <Text style={styles.connectionText}>
+                {currentVehicle.connectionStatus === 'connected' ? 'Conectado' : currentVehicle.connectionStatus === 'connecting' ? 'Conectando' : 'Offline'}
+              </Text>
+            </View>
             <Text style={styles.metaText}>{currentVehicle.year}</Text>
             <View style={styles.metaDot} />
             <Text style={styles.metaText}>{currentVehicle.licensePlate}</Text>
-            <View style={styles.metaDot} />
-            <View style={[styles.statusIndicator, { backgroundColor: statusColor }]} />
-            <Text style={[styles.statusLabel, { color: statusColor }]}>
-              {HEALTH_STATUS_LABELS[currentVehicle.healthStatus]}
-            </Text>
           </View>
 
           {/* Health bar */}
@@ -284,15 +285,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           </View>
         )}
 
-        {/* CTA button */}
-        <TouchableOpacity
-          style={styles.ctaButton}
-          onPress={() => navigation.navigate(ROUTES.VEHICLE_DETAILS, { vehicleId: currentVehicle.id })}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.ctaText}>Ver Detalhes do Veículo</Text>
-          <MaterialCommunityIcons name="arrow-right" size={18} color={FORD_COLORS.WHITE} />
-        </TouchableOpacity>
+        {/* CTA buttons */}
+        <View style={styles.ctaRow}>
+          <TouchableOpacity
+            style={[styles.ctaButtonSecondary]}
+            onPress={() => navigation.navigate(ROUTES.CAR_CONNECTION, { vehicleId: currentVehicle.id })}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons name="car-connected" size={18} color={FORD_COLORS.FORD_BLUE} />
+            <Text style={styles.ctaTextSecondary}>Ver Telemetria</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.ctaButton]}
+            onPress={() => navigation.navigate(ROUTES.VEHICLE_DETAILS, { vehicleId: currentVehicle.id })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.ctaText}>Ver Detalhes</Text>
+            <MaterialCommunityIcons name="arrow-right" size={18} color={FORD_COLORS.WHITE} />
+          </TouchableOpacity>
+        </View>
       </Animated.View>
     </View>
   );
@@ -428,6 +439,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+  connectionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  connectedBadge: {
+    backgroundColor: FORD_COLORS.HEALTH_NORMAL + '20',
+  },
+  connectingBadge: {
+    backgroundColor: FORD_COLORS.HEALTH_ATTENTION + '20',
+  },
+  disconnectedBadge: {
+    backgroundColor: FORD_COLORS.MEDIUM_GRAY + '20',
+  },
+  connectionDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 4,
+  },
+  connectedDot: {
+    backgroundColor: FORD_COLORS.HEALTH_NORMAL,
+  },
+  connectionText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: FORD_COLORS.DARK_GRAY,
+  },
 
   // Health bar
   healthBar: {
@@ -481,11 +523,34 @@ const styles = StyleSheet.create({
     backgroundColor: FORD_COLORS.FORD_BLUE,
     paddingVertical: 14,
     borderRadius: 10,
-    marginBottom: 12,
     gap: 8,
+    flex: 1,
   },
   ctaText: {
     color: FORD_COLORS.WHITE,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  ctaRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  ctaButtonSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: FORD_COLORS.WHITE,
+    paddingVertical: 14,
+    borderRadius: 10,
+    gap: 8,
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: FORD_COLORS.FORD_BLUE,
+  },
+  ctaTextSecondary: {
+    color: FORD_COLORS.FORD_BLUE,
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: 0.3,

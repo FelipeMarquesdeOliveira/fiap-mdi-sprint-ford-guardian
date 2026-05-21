@@ -10,3 +10,4 @@ export { RequestReviewScreen } from './RequestReviewScreen';
 export { FindDealerScreen } from './FindDealerScreen';
 export { ProfileScreen } from './ProfileScreen';
 export { DashboardScreen } from './DashboardScreen';
+export { CarConnectionScreen } from './CarConnectionScreen';
