@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Alert, PermissionsAndroid, Platform, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, PermissionsAndroid, Platform, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MOCK_DEALERS } from '../../data/mocks';
-import { nominatimApi, DealerLocation } from '../../infrastructure/api';
+import { nominatimApi } from '../../infrastructure/api';
 import { Dealer } from '../../domain/entities/Dealer';
 import { FORD_COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../shared/theme';
 import { ROUTES } from '../../shared/constants';
