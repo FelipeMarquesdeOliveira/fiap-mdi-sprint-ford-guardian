@@ -17,6 +17,7 @@ import {
   RequestReviewScreen,
   FindDealerScreen,
   ProfileScreen,
+  DashboardScreen,
 } from '../screens';
 
 import { ROUTES, FORD_LOGO } from '../../shared/constants';
@@ -33,14 +34,16 @@ export type RootStackParamList = {
   AddVehicle: undefined;
   Alerts: undefined;
   AlertDetail: { alertId: string };
-  RequestReview: { vehicleId: string };
+  RequestReview: { vehicleId?: string; dealerId?: string; dealerName?: string };
   FindDealer: { vehicleId?: string };
   Profile: undefined;
+  Dashboard: undefined;
 };
 
 export type MainTabsParamList = {
   Home: undefined;
   Alerts: undefined;
+  Dashboard: undefined;
   Profile: undefined;
 };
 
@@ -109,6 +112,16 @@ const MainTabs = () => {
           tabBarLabel: 'Alertas',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="bell-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name={ROUTES.DASHBOARD as keyof MainTabsParamList}
+        component={DashboardScreen}
+        options={{
+          tabBarLabel: 'Dashboard',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="chart-bar" size={size} color={color} />
           ),
         }}
       />
@@ -194,6 +207,13 @@ export const AppNavigator: React.FC = () => {
           component={FindDealerScreen}
           options={{
             headerTitle: FordHeaderTitle,
+          }}
+        />
+        <Stack.Screen
+          name={ROUTES.DASHBOARD as keyof RootStackParamList}
+          component={DashboardScreen}
+          options={{
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

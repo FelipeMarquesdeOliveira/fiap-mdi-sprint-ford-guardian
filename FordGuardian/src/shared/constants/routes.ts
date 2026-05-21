@@ -12,6 +12,7 @@ export const ROUTES = {
   PROFILE: 'Profile',
   REQUEST_REVIEW: 'RequestReview',
   FIND_DEALER: 'FindDealer',
+  DASHBOARD: 'Dashboard',
 } as const;
 
 export const ONBOARDING_PAGES = [
