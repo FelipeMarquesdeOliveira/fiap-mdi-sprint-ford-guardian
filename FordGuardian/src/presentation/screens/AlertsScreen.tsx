@@ -158,8 +158,8 @@ export const AlertsScreen: React.FC<AlertsScreenProps> = ({ navigation }) => {
       <Animated.View style={[
         { flex: 1 },
         {
-          opacity: listAnim,
-          transform: [{ translateY: listAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+          opacity: contentAnim,
+          transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
         },
       ]}>
         <FlatList
