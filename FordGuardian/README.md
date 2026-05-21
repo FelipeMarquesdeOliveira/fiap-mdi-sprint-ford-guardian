@@ -202,6 +202,59 @@ O Dashboard apresenta métricas estratégicas para o Desafio 02:
 4. **Veículos em Risco:** Clientes potenciais para retenção
 5. **Idade da Frota:** Análise demográfica
 
+## 📸 Demonstração Visual
+
+### Telas do App
+
+| # | Tela | Descrição |
+|---|------|-----------|
+| 1 | Splash | Tela de carregamento com branding Ford |
+| 2 | Onboarding | 3 slides explicativos sobre funcionalidades |
+| 3 | Login | Autenticação com email e senha |
+| 4 | Home | Carrossel de veículos com status de saúde |
+| 5 | Detalhes do Veículo | Informações completas e dados Fipe |
+| 6 | Telemetria | Gauges em tempo real (motor, óleo, bateria) |
+| 7 | Alertas | Lista de alertas ordenados por severidade |
+| 8 | Dashboard | Analytics de VIN Share |
+| 9 | Buscar Concessionária | Mapa com localizações próximas |
+| 10 | Perfil | Dados do usuário e preferências |
+| 11 | Cadastro de Veículo | Adição via Fipe API |
+
+### Screenshots
+
+![01 - Splash](assets/screens/01-splash.png)
+*01. Splash Screen*
+
+![02 - Onboarding](assets/screens/02-onboarding.png)
+*02. Onboarding*
+
+![03 - Login](assets/screens/03-login.png)
+*03. Login*
+
+![04 - Home](assets/screens/04-home.png)
+*04. Home - Carrossel de Veículos*
+
+![05 - Detalhes do Veículo](assets/screens/05-vehicle-details.png)
+*05. Detalhes do Veículo*
+
+![06 - Telemetria](assets/screens/06-telemetria.png)
+*06. Telemetria em Tempo Real*
+
+![07 - Alertas](assets/screens/07-alertas.png)
+*07. Alertas Preditivos*
+
+![08 - Dashboard](assets/screens/08-dashboard.png)
+*08. Dashboard - VIN Share Analytics*
+
+![09 - Buscar Concessionária](assets/screens/09-buscar-concessionaria.png)
+*09. Buscar Concessionária*
+
+![10 - Perfil](assets/screens/10-perfil.png)
+*10. Perfil do Usuário*
+
+![11 - Cadastro de Veículo](assets/screens/11-cadastro-veiculo.png)
+*11. Cadastro de Veículo*
+
 ---
 
 ## 👥 Equipe
