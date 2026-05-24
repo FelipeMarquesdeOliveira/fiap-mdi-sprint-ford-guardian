@@ -36,7 +36,7 @@ export const vehicleRepository = {
     const randomTelemetry = () => ({
       engineTemp: Math.floor(Math.random() * 30) + 70,
       oilLevel: Math.floor(Math.random() * 40) + 50,
-      batteryVoltage: (Math.random() * 2 + 11).toFixed(1),
+      batteryVoltage: parseFloat((Math.random() * 2 + 11).toFixed(1)),
       tirePressure: Math.floor(Math.random() * 10) + 28,
       fuelLevel: Math.floor(Math.random() * 60) + 30,
       mileage: 0,

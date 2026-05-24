@@ -204,7 +204,7 @@ export const DashboardScreen: React.FC = () => {
               <View style={styles.ageDivider} />
               <View style={styles.ageItem}>
                 <Text style={styles.ageValue}>1.2K</Text>
-                <Text style={styles.ageLabel}>> 5 anos</Text>
+                <Text style={styles.ageLabel}>{'>'} 5 anos</Text>
               </View>
             </View>
             <View style={styles.ageBar}>

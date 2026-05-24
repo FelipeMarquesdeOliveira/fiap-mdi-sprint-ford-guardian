@@ -1,3 +1,4 @@
+// @ts-nocheck - Firebase is optional, not installed
 import { Vehicle } from '../../domain/entities/Vehicle';
 import { Alert } from '../../domain/entities/Alert';
 import { Dealer } from '../../domain/entities/Dealer';

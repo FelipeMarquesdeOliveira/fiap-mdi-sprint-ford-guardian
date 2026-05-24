@@ -233,8 +233,6 @@ export const AppNavigator: React.FC = () => {
               fontWeight: '600' as const,
             },
             headerShadowVisible: false,
-            headerBackTitleVisible: false,
-            headerBackAccessibilityLabel: 'Voltar',
           }}
         />
       </Stack.Navigator>
