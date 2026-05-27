@@ -4,6 +4,7 @@
 
 ## Desafio 02 — Impulsionando o VIN Share na América do Sul com Soluções Inteligentes
 
+Video: https://youtu.be/MkCPgNGNx9A
 ---
 
 ## Screenshots do App
